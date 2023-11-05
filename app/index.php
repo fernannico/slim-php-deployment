@@ -12,6 +12,8 @@ require __DIR__ . '/../vendor/autoload.php';
 
 // Instantiate App
 $app = AppFactory::create();
+// Set base path
+$app->setBasePath('/slim-deployment/slim-php-deployment/app');
 
 // Add error middleware
 $app->addErrorMiddleware(true, true, true);
