@@ -45,3 +45,4 @@ $app->post('/test', function (Request $request, Response $response) {
 });
 
 $app->run();
+?>
