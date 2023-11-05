@@ -24,25 +24,29 @@ class Usuario
 
         return $objAccesoDatos->obtenerUltimoId();
     }
-/*
-    public static function obtenerTodos()
+    /*
+    public static function obtenerUsuarioPorID($id)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, usuario, clave FROM usuarios");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM usuarios WHERE id = $id");
+        // $consulta->bindValue(1, $id, PDO::PARAM_INT);
         $consulta->execute();
+        
+        $usuarioBuscado = $consulta->fetchObject('Usuario');
+        return $usuarioBuscado;
+    }
+    */
 
+    public static function obtenerTodosUsuarios()
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM usuarios");
+        $consulta->execute();
+        
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
-
-    public static function obtenerUsuario($usuario)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, usuario, clave FROM usuarios WHERE usuario = :usuario");
-        $consulta->bindValue(':usuario', $usuario, PDO::PARAM_STR);
-        $consulta->execute();
-
-        return $consulta->fetchObject('Usuario');
-    }
+    
+    /*
 
     public static function modificarUsuario()
     {

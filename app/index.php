@@ -28,14 +28,9 @@ $app->addBodyParsingMiddleware();
 // Routes
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->post('[/]', \UsuarioController::class . ':CargarUsuario');
+    $group->get('[/]', \UsuarioController::class . ':TraerTodos');
+    // $group->get('/{id}', \UsuarioController::class . ':TraerUno');
     });
-
-//lippi
-// $app->post('[/]', function (Request $request, Response $response) {
-//     $payload = json_encode(array('method' => 'POST', 'msg' => "Bienvenido a SlimFramework 2023"));
-//     $response->getBody()->write($payload);
-//     return $response->withHeader('Content-Type', 'application/json');
-// });
 
 $app->run();
 ?>

@@ -26,25 +26,25 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
     /*
     public function TraerUno($request, $response, $args)
     {
-        // Buscamos usuario por nombre
-        $usr = $args['usuario'];
-        $usuario = Usuario::obtenerUsuario($usr);
+        // Buscamos usuario por id
+        $id = $args['id'];
+        $usuario = Usuario::obtenerUsuarioPorID($id);
         $payload = json_encode($usuario);
 
         $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json');
     }
+    */
     public function TraerTodos($request, $response, $args)
     {
-        $lista = Usuario::obtenerTodos();
+        $lista = Usuario::obtenerTodosUsuarios();
         $payload = json_encode(array("listaUsuario" => $lista));
 
         $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
+        return $response->withHeader('Content-Type', 'application/json');
     }
-    
+
+    /*    
     public function ModificarUno($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
