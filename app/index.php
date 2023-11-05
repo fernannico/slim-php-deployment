@@ -6,6 +6,7 @@ ini_set('display_errors', 1);
 require_once './controllers/UsuarioController.php';
 require_once './controllers/MesaController.php';
 require_once './controllers/ProductoController.php';
+require_once './controllers/PedidoController.php';
 // require_once(__DIR__ . '/../db/AccesoDatos.php');
 require_once './db/AccesoDatos.php';
 
@@ -42,6 +43,11 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 $app->group('/productos', function (RouteCollectorProxy $group) {
     $group->post('[/]', \ProductoController::class . ':CargarProducto');
     $group->get('[/]', \ProductoController::class . ':TraerTodos');
+});
+
+$app->group('/pedidos', function (RouteCollectorProxy $group) {
+    $group->post('[/]', \PedidoController::class . ':CargarPedido');
+    $group->get('[/]', \PedidoController::class . ':TraerTodos');
 });
 
 $app->run();
