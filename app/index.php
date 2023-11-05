@@ -3,6 +3,10 @@
 error_reporting(-1);
 ini_set('display_errors', 1);
 
+require_once './controllers/UsuarioController.php';
+// require_once(__DIR__ . '/../db/AccesoDatos.php');
+require_once './db/AccesoDatos.php';
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -22,29 +26,16 @@ $app->addErrorMiddleware(true, true, true);
 $app->addBodyParsingMiddleware();
 
 // Routes
-$app->get('[/]', function (Request $request, Response $response) {
-    $payload = json_encode(array('method' => 'GET', 'msg' => "Bienvenido a SlimFramework 2023"));
-    $response->getBody()->write($payload);
-    return $response->withHeader('Content-Type', 'application/json');
-});
+$app->group('/usuarios', function (RouteCollectorProxy $group) {
+    $group->post('[/]', \UsuarioController::class . ':CargarUsuario');
+    });
 
-$app->get('/test', function (Request $request, Response $response) {
-    $payload = json_encode(array('method' => 'GET', 'msg' => "Bienvenido a SlimFramework 2023"));
-    $response->getBody()->write($payload);
-    return $response->withHeader('Content-Type', 'application/json');
-});
-
-$app->post('[/]', function (Request $request, Response $response) {
-    $payload = json_encode(array('method' => 'POST', 'msg' => "Bienvenido a SlimFramework 2023"));
-    $response->getBody()->write($payload);
-    return $response->withHeader('Content-Type', 'application/json');
-});
-
-$app->post('/test', function (Request $request, Response $response) {
-    $payload = json_encode(array('method' => 'POST', 'msg' => "Bienvenido a SlimFramework 2023"));
-    $response->getBody()->write($payload);
-    return $response->withHeader('Content-Type', 'application/json');
-});
+//lippi
+// $app->post('[/]', function (Request $request, Response $response) {
+//     $payload = json_encode(array('method' => 'POST', 'msg' => "Bienvenido a SlimFramework 2023"));
+//     $response->getBody()->write($payload);
+//     return $response->withHeader('Content-Type', 'application/json');
+// });
 
 $app->run();
 ?>
