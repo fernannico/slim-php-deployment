@@ -7,7 +7,6 @@ require_once './controllers/UsuarioController.php';
 require_once './controllers/MesaController.php';
 require_once './controllers/ProductoController.php';
 require_once './controllers/PedidoController.php';
-// require_once(__DIR__ . '/../db/AccesoDatos.php');
 require_once './db/AccesoDatos.php';
 
 use Psr\Http\Message\ResponseInterface as Response;

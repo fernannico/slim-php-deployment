@@ -4,6 +4,7 @@ class Usuario
 {
     public $id;
     public $nombre;
+    public $puesto;
     public $sector;
     public $ingresoSist;
     public $cantOperaciones;
@@ -12,18 +13,50 @@ class Usuario
     public function crearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, sector) VALUES (:nombre, :sector)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector) VALUES (:nombre, :puesto, :sector)");
 
         $consulta->bindParam(':nombre', $this->nombre);
+        $consulta->bindParam(':puesto', $this->puesto);
         $consulta->bindParam(':sector', $this->sector);
-        // $consulta->bindParam(':nombre', $this->ingresoSist);
-        // $consulta->bindParam(':nombre', $this->cantOperaciones);
         // $consulta->bindParam(':nombre', $this->estado);
 
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
     }
+
+    public static function ValidarPuesto($puesto){
+        // validar puesto
+        $retorno = false;
+        $puestoesPermitidos = ["mozo", "cocinero", "bartender", "socio", "cervecero"];
+        if (in_array($puesto, $puestoesPermitidos)) {
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+    
+    public static function ValidarSector($sector){
+        // validar sector
+        $retorno = false;
+        $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
+        if (in_array($sector, $sectoresPermitidos)) {
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+
+    public static function ValidarPuestoConSector($puesto,$sector){
+        // Validar restricciones adicionales según el puesto y el sector
+        $retorno = false;
+        if (($puesto == "cervecero" && $sector == "choperas") || ($puesto == "bartender" && $sector == "barra") || ($puesto == "cocinero" && in_array($sector, ["cocina", "candy bar"]))) {
+            $retorno = true;
+        }
+
+        return $retorno;
+    }
+
     /*
     public static function obtenerUsuarioPorID($id)
     {
@@ -46,26 +79,4 @@ class Usuario
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
     
-    /*
-
-    public static function modificarUsuario()
-    {
-        $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET usuario = :usuario, clave = :clave WHERE id = :id");
-        $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
-        $consulta->bindValue(':clave', $this->clave, PDO::PARAM_STR);
-        $consulta->bindValue(':id', $this->id, PDO::PARAM_INT);
-        $consulta->execute();
-    }
-
-    public static function borrarUsuario($usuario)
-    {
-        $objAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDato->prepararConsulta("UPDATE usuarios SET fechaBaja = :fechaBaja WHERE id = :id");
-        $fecha = new DateTime(date("d-m-Y"));
-        $consulta->bindValue(':id', $usuario, PDO::PARAM_INT);
-        $consulta->bindValue(':fechaBaja', date_format($fecha, 'Y-m-d H:i:s'));
-        $consulta->execute();
-    }
-    */
 }

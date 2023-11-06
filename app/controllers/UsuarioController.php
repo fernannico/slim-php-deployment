@@ -9,17 +9,46 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $parametros = $request->getParsedBody();
 
         $nombre = $parametros['nombre'];
+        $puesto = $parametros['puesto'];
         $sector = $parametros['sector'];
 
-        // Creamos el usuario
-        $usr = new Usuario();
-        $usr->nombre = $nombre;
-        $usr->sector = $sector;
-        $usr->crearUsuario();
+        if(Usuario::ValidarPuesto($puesto)) {
+            if(Usuario::ValidarSector($sector)) {
+                if(Usuario::ValidarPuestoConSector($puesto,$sector)) {
+                    // Creamos el usuario
+                    $usr = new Usuario();
+                    $usr->nombre = $nombre;
+                    $usr->puesto = $puesto;
+                    if($puesto == "mozo"){
+                        $usr->sector = null;
+                    }else{
+                        $usr->sector = $sector;
+                    }
+                    $usr->crearUsuario();
 
-        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+                    $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
 
-        $response->getBody()->write($payload);
+                    $response->getBody()->write($payload);
+                } else {
+                    $payload = json_encode(array("error" => "La combinacion de puesto y sector no es valida, lo correcto es:<br>
+                    <br>Puesto \t Sector
+                    <br>bartender -> barra
+                    <br>cerveceros -> choperas
+                    <br>cocineros -> cocina o candy bar"));
+                    
+                    $response->getBody()->write($payload);
+                }
+            }else{
+                $payload = json_encode(array("errror" => "Sector no valido. Los sectors disponibles son: barra, choperas, cocina, candy bar"));
+            
+                $response->getBody()->write($payload);
+            }
+        } else {
+            $payload = json_encode(array("errror" => "Puesto no valido. Los puestos disponibles son: mozo, cocinero, bartender, socio, cervecero"));
+            
+            $response->getBody()->write($payload);
+        }
+
         return $response->withHeader('Content-Type', 'application/json');
     }
     
@@ -44,33 +73,4 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    /*    
-    public function ModificarUno($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-
-        $nombre = $parametros['nombre'];
-        Usuario::modificarUsuario($nombre);
-
-        $payload = json_encode(array("mensaje" => "Usuario modificado con exito"));
-
-        $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
-    }
-
-    public function BorrarUno($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-
-        $usuarioId = $parametros['usuarioId'];
-        Usuario::borrarUsuario($usuarioId);
-
-        $payload = json_encode(array("mensaje" => "Usuario borrado con exito"));
-
-        $response->getBody()->write($payload);
-        return $response
-          ->withHeader('Content-Type', 'application/json');
-    }
-    */
 }
