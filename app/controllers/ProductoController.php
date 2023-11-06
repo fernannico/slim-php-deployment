@@ -1,5 +1,6 @@
 <?php
 require_once './models/Producto.php';
+require_once './models/Usuario.php';
 // require_once './interfaces/IApiUsable.php';
 
 class ProductoController extends Producto /*implements IApiUsable*/
@@ -11,17 +12,21 @@ class ProductoController extends Producto /*implements IApiUsable*/
         $descripcion = $parametros['descripcion'];
         $precio = $parametros['precio'];
         $sector = $parametros['sector'];
-        
-        // Creamos el producto
-        $usr = new Producto();
-        $usr->descripcion = $descripcion;
-        $usr->precio = $precio;
-        $usr->sector = $sector;
-        $usr->crearProducto();
 
-        $payload = json_encode(array("mensaje" => "Producto creado con exito"));
-
-        $response->getBody()->write($payload);
+        if(Usuario::ValidarSector($sector)) {
+            // Creamos el producto
+            $usr = new Producto();
+            $usr->descripcion = $descripcion;
+            $usr->precio = $precio;
+            $usr->sector = $sector;
+            $usr->crearProducto();
+            $payload = json_encode(array("mensaje" => "Producto creado con exito"));
+            $response->getBody()->write($payload);
+        } else {
+            $payload = json_encode(array("errror" => "Sector no valido. Los sectors disponibles son: barra, choperas, cocina, candy bar"));
+            
+            $response->getBody()->write($payload);
+        }
         return $response->withHeader('Content-Type', 'application/json');
     }
     
