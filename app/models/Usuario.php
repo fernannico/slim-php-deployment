@@ -25,37 +25,37 @@ class Usuario
         return $objAccesoDatos->obtenerUltimoId();
     }
 
-    public static function ValidarPuesto($puesto){
-        // validar puesto
-        $retorno = false;
-        $puestoesPermitidos = ["mozo", "cocinero", "bartender", "socio", "cervecero"];
-        if (in_array($puesto, $puestoesPermitidos)) {
-            $retorno = true;
-        }
+    // public static function ValidarPuesto($puesto){
+    //     // validar puesto
+    //     $retorno = false;
+    //     $puestoesPermitidos = ["mozo", "cocinero", "bartender", "socio", "cervecero"];
+    //     if (in_array($puesto, $puestoesPermitidos)) {
+    //         $retorno = true;
+    //     }
 
-        return $retorno;
-    }
+    //     return $retorno;
+    // }
     
-    public static function ValidarSector($sector){
-        // validar sector
-        $retorno = false;
-        $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
-        if (in_array($sector, $sectoresPermitidos)) {
-            $retorno = true;
-        }
+    // public static function ValidarSector($sector){
+    //     // validar sector
+    //     $retorno = false;
+    //     $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
+    //     if (in_array($sector, $sectoresPermitidos)) {
+    //         $retorno = true;
+    //     }
 
-        return $retorno;
-    }
+    //     return $retorno;
+    // }
 
-    public static function ValidarPuestoConSector($puesto,$sector){
-        // Validar restricciones adicionales según el puesto y el sector
-        $retorno = false;
-        if (($puesto == "cervecero" && $sector == "choperas") || ($puesto == "bartender" && $sector == "barra") || ($puesto == "cocinero" && in_array($sector, ["cocina", "candy bar"]))) {
-            $retorno = true;
-        }
+    // public static function ValidarPuestoConSector($puesto,$sector){
+    //     // Validar restricciones adicionales según el puesto y el sector
+    //     $retorno = false;
+    //     if (($puesto == "cervecero" && $sector == "choperas") || ($puesto == "bartender" && $sector == "barra") || ($puesto == "cocinero" && in_array($sector, ["cocina", "candy bar"]))) {
+    //         $retorno = true;
+    //     }
 
-        return $retorno;
-    }
+    //     return $retorno;
+    // }
 
     /*
     public static function obtenerUsuarioPorID($id)

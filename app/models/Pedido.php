@@ -60,5 +60,14 @@ class Pedido
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
     }
+
+    public function CambiarEstadoPedido($estado)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET estado = :estado WHERE codigoAN = :codigoAN");
+        $consulta->bindParam(":estado", $estado);
+        $consulta->bindParam(":codigoAN", $this->codigoAN);
+        return $consulta->execute();
+    }
     
 }

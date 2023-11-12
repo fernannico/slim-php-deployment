@@ -12,42 +12,20 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $puesto = $parametros['puesto'];
         $sector = $parametros['sector'];
 
-        if(Usuario::ValidarPuesto($puesto)) {
-            if(Usuario::ValidarSector($sector)) {
-                if(Usuario::ValidarPuestoConSector($puesto,$sector)) {
-                    // Creamos el usuario
-                    $usr = new Usuario();
-                    $usr->nombre = $nombre;
-                    $usr->puesto = $puesto;
-                    if($puesto == "mozo"){
-                        $usr->sector = null;
-                    }else{
-                        $usr->sector = $sector;
-                    }
-                    $usr->crearUsuario();
+        // Creamos el usuario
+        $usr = new Usuario();
+        $usr->nombre = $nombre;
+        $usr->puesto = $puesto;
+        // if($puesto == "mozo"){
+        //     $usr->sector = null;
+        // }else{
+        //     $usr->sector = $sector;
+        // }
+        $usr->crearUsuario();
 
-                    $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
 
-                    $response->getBody()->write($payload);
-                } else {
-                    $payload = json_encode(array("error" => "La combinacion de puesto y sector no es valida, lo correcto es:<br>
-                    <br>Puesto \t Sector
-                    <br>bartender -> barra
-                    <br>cerveceros -> choperas
-                    <br>cocineros -> cocina o candy bar"));
-                    
-                    $response->getBody()->write($payload);
-                }
-            }else{
-                $payload = json_encode(array("errror" => "Sector no valido. Los sectors disponibles son: barra, choperas, cocina, candy bar"));
-            
-                $response->getBody()->write($payload);
-            }
-        } else {
-            $payload = json_encode(array("errror" => "Puesto no valido. Los puestos disponibles son: mozo, cocinero, bartender, socio, cervecero"));
-            
-            $response->getBody()->write($payload);
-        }
+        $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json');
     }

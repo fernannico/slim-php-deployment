@@ -53,4 +53,25 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    // public function CambiarEstado($request, $response, $args)
+    // {
+    //     $parametros = $request->getParsedBody();
+    //     $estado = $parametros['estado'];
+    // }
+
+    public static function ModificarEstado($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+
+        $pedido = new Pedido();
+
+        // $pedido->estado = $parametros['estado'];
+        $pedido->codigoAN = $parametros['codigoAN'];
+
+        $pedido->CambiarEstadoPedido($parametros['estado']);
+        $retorno = json_encode(array("mensaje" => "Estado cambiado con exito"));
+
+        $response->getBody()->write($retorno);
+        return $response;
+    }
 }
