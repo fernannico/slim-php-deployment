@@ -11,6 +11,7 @@ require_once './db/AccesoDatos.php';
 require_once './middlewares/AuthUsuariosMW.php';
 require_once './middlewares/pedidosMW.php';
 require_once './middlewares/AuthMesaMW.php';
+require_once './middlewares/AuthMesaEstadoMW.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -34,7 +35,7 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');
     $group->get('/{id}', \UsuarioController::class . ':TraerUno');  //fx poniendo app/usuarios/4
     $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthMesaMW::class);
-    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')/*->add(\AuthMesaMW::class)*/;
+    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class);
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
