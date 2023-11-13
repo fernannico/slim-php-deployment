@@ -61,13 +61,50 @@ class Pedido
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
     }
 
-    public function CambiarEstadoPedido($estado)
+    public static function actualizarEstado($codigoAN, $estado)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
         $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET estado = :estado WHERE codigoAN = :codigoAN");
         $consulta->bindParam(":estado", $estado);
-        $consulta->bindParam(":codigoAN", $this->codigoAN);
-        return $consulta->execute();
+        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta->execute();
+    }
+
+    public static function RetornarEstado($codigoAN)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT estado FROM pedidos WHERE codigoAN = :codigoAN");
+        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta->execute();
+    
+        // Obtener el estado del pedido
+        $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+        
+        if ($resultado) {
+            return $resultado['estado']; // Devolver el estado
+        } else {
+            return "No se encontró el pedido"; // Manejo de error si no se encuentra el pedido
+        }
     }
     
+    public static function CambiarEstadoPedido($codigoAN,$tiempoFinalizacion)
+    {
+        $estado = Pedido::RetornarEstado($codigoAN);
+
+        if ($estado === "pedido") {
+            Pedido::actualizarEstado($codigoAN, "en preparacion");
+            // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
+        } elseif ($estado === "en preparacion") {
+            sleep($tiempoFinalizacion);
+            Pedido::actualizarEstado($codigoAN, "listo para servir");
+            // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'finalizado'"));
+        }
+        // return $retorno;
+        //no tiene sentido poner los mensajes aca porque solo salen los mensajes del controller
+    }
+
+
+
 }
+
+?>

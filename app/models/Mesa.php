@@ -20,18 +20,18 @@ class Mesa
 
         return $objAccesoDatos->obtenerUltimoId();
     }
-    /*
+    
     public static function obtenerMesaPorID($id)
     {
+        $mesaBuscada = null;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM mesass WHERE id = $id");
-        // $consulta->bindValue(1, $id, PDO::PARAM_INT);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, estado FROM mesas WHERE id = :id");
+        $consulta->bindParam(":id", $id);
         $consulta->execute();
         
         $mesaBuscada = $consulta->fetchObject('Mesa');
         return $mesaBuscada;
     }
-    */
 
     public static function obtenerTodasMesas()
     {
@@ -42,4 +42,13 @@ class Mesa
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Mesa');
     }
     
+    public static function actualizarEstado($id, $estado)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE mesas SET estado = :estado WHERE id = :id");
+        $consulta->bindParam(":id", $id);
+        $consulta->bindParam(":estado", $estado);
+        $consulta->execute();
+    }
+
 }

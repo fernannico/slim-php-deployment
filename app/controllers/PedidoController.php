@@ -10,8 +10,6 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $idMozo = $parametros['idMozo'];
         $idMesa = $parametros['idMesa'];
         $productos = $parametros['productos'];
-        $tiempoFinalizacion = $parametros['tiempoFinalizacion'];
-        $estado = $parametros['estado'];
 
         //Codigo aleatorio
         $codigoAleatorio = Pedido::generarCodigoAleatorio();
@@ -22,8 +20,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $usr->idMozo = $idMozo;
         $usr->idMesa = $idMesa;
         $usr->productos = $productos;
-        $usr->tiempoFinalizacion = $tiempoFinalizacion;
-        $usr->estado = $estado;
+        $usr->estado = "encargado";
         $usr->crearPedido();
 
         $payload = json_encode(array("mensaje" => "Pedido creado con exito"));
@@ -51,27 +48,36 @@ class PedidoController extends Pedido /*implements IApiUsable*/
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
-    }
+    } 
 
-    // public function CambiarEstado($request, $response, $args)
-    // {
-    //     $parametros = $request->getParsedBody();
-    //     $estado = $parametros['estado'];
-    // }
-
-    public static function ModificarEstado($request, $response, $args)
-    {
+    public static function ModificarEstado($request, $response, $args) {
         $parametros = $request->getParsedBody();
+        $codigoAN = $parametros["codigoAN"];
+        $tiempoFinalizacion = $parametros["tiempoFinalizacion"];
 
-        $pedido = new Pedido();
-
-        // $pedido->estado = $parametros['estado'];
-        $pedido->codigoAN = $parametros['codigoAN'];
-
-        $pedido->CambiarEstadoPedido($parametros['estado']);
-        $retorno = json_encode(array("mensaje" => "Estado cambiado con exito"));
+        $estado = Pedido::RetornarEstado($codigoAN);
+        
+        // ver si MW con si es pedido, pasar x segundos + mje y despues de esos segudos ir al header
+        
+        do {
+            if ($estado == "pedido") {
+                Pedido::CambiarEstadoPedido($codigoAN,$tiempoFinalizacion);
+                // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
+                //este mensaje nunca va a aparecer desde el controller
+            } else if($estado === "en preparacion"){
+                Pedido::CambiarEstadoPedido($codigoAN,$tiempoFinalizacion);
+                $retorno = json_encode(array("mensaje" => "Estado cambiado a 'listo para servir'"));
+            } else if($estado === "listo para servir") {
+                $retorno = json_encode(array("mensaje" => "el pedido ya esta listo para servir"));
+            }
+            $estado = Pedido::RetornarEstado($codigoAN);
+        }while($estado !== "listo para servir");
 
         $response->getBody()->write($retorno);
         return $response;
     }
+
+    
 }
+
+?>

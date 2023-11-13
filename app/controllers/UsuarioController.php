@@ -30,10 +30,9 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
     
-    /*
     public function TraerUno($request, $response, $args)
     {
-        // Buscamos usuario por id
+        //ver que pasa con requestQuery que siempre trae todos
         $id = $args['id'];
         $usuario = Usuario::obtenerUsuarioPorID($id);
         $payload = json_encode($usuario);
@@ -41,7 +40,7 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
-    */
+    
     public function TraerTodos($request, $response, $args)
     {
         $lista = Usuario::obtenerTodosUsuarios();
@@ -49,6 +48,23 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function CerrarMesaController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idMesa = $parametros["idMesa"];
+        $idUsuario = $parametros["idUsuario"];
+
+        if(Usuario::CerrarMesa($idUsuario,$idMesa)){
+            $retorno = json_encode(array("mensaje" => "mesa cerrada"));
+        }else{
+            $retorno = json_encode(array("mensaje" => "mesa NO cerrada, usuario no es socio"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+
+        // HACER: MW que valide que exista el usuario y el id de la mesa para que entre al controller
     }
 
 }

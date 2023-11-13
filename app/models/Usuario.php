@@ -1,4 +1,6 @@
 <?php
+require_once './models/Pedido.php';
+require_once './models/Mesa.php';
 
 class Usuario
 {
@@ -36,16 +38,16 @@ class Usuario
     //     return $retorno;
     // }
     
-    // public static function ValidarSector($sector){
-    //     // validar sector
-    //     $retorno = false;
-    //     $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
-    //     if (in_array($sector, $sectoresPermitidos)) {
-    //         $retorno = true;
-    //     }
+    public static function ValidarSector($sector){
+        // validar sector
+        $retorno = false;
+        $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
+        if (in_array($sector, $sectoresPermitidos)) {
+            $retorno = true;
+        }
 
-    //     return $retorno;
-    // }
+        return $retorno;
+    }
 
     // public static function ValidarPuestoConSector($puesto,$sector){
     //     // Validar restricciones adicionales según el puesto y el sector
@@ -56,19 +58,17 @@ class Usuario
 
     //     return $retorno;
     // }
-
-    /*
     public static function obtenerUsuarioPorID($id)
     {
+        $usuarioBuscado = null;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM usuarios WHERE id = $id");
-        // $consulta->bindValue(1, $id, PDO::PARAM_INT);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, nombre, puesto, sector, ingresoSist, cantOperaciones, estado FROM usuarios WHERE id = :id");
+        $consulta->bindParam(":id", $id);
         $consulta->execute();
         
         $usuarioBuscado = $consulta->fetchObject('Usuario');
         return $usuarioBuscado;
-    }
-    */
+    }    
 
     public static function obtenerTodosUsuarios()
     {
@@ -79,4 +79,15 @@ class Usuario
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
     
-}
+    public static function CerrarMesa($idUsuario, $idMesa)
+    {
+        $retorno = false;
+        $usuario = self::obtenerUsuarioPorID($idUsuario);
+        // $mesa = Mesa::obtenerMesaPorID($idMesa);
+        if($usuario->puesto == "socio"){
+            Mesa::actualizarEstado($idMesa, "cerrada");
+            $retorno = true;
+        }
+        return $retorno;
+    }
+}   

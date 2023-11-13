@@ -9,6 +9,8 @@ require_once './controllers/ProductoController.php';
 require_once './controllers/PedidoController.php';
 require_once './db/AccesoDatos.php';
 require_once './middlewares/AuthUsuariosMW.php';
+require_once './middlewares/pedidosMW.php';
+require_once './middlewares/AuthMesaMW.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -30,8 +32,9 @@ $app->addBodyParsingMiddleware();
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(new AuthMWSector());
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-    // $group->get('/{id}', \UsuarioController::class . ':TraerUno');
-    });
+    $group->get('/{id}', \UsuarioController::class . ':TraerUno');  //fx poniendo app/usuarios/4
+    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthMesaMW::class);
+});
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
     $group->post('[/]', \MesaController::class . ':CargarMesa');
@@ -46,7 +49,7 @@ $app->group('/productos', function (RouteCollectorProxy $group) {
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
     $group->post('[/]', \PedidoController::class . ':CargarPedido');
     $group->get('[/]', \PedidoController::class . ':TraerTodos');
-    $group->put('/estado', \PedidoController::class . ':ModificarEstado');
+    $group->put('/estado', \PedidoController::class . ':ModificarEstado')->add(\pedidosMW::class);
 });
 
 $app->run();
