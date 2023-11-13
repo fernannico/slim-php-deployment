@@ -34,6 +34,7 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');
     $group->get('/{id}', \UsuarioController::class . ':TraerUno');  //fx poniendo app/usuarios/4
     $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthMesaMW::class);
+    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')/*->add(\AuthMesaMW::class)*/;
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {

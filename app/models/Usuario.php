@@ -90,4 +90,16 @@ class Usuario
         }
         return $retorno;
     }
+        
+    public static function CambiarEstadoMesa($idUsuario, $idMesa, $estado)
+    {
+        $retorno = false;
+        $usuario = self::obtenerUsuarioPorID($idUsuario);
+        // $mesa = Mesa::obtenerMesaPorID($idMesa);
+        if($usuario->puesto == "mozo"){
+            Mesa::actualizarEstado($idMesa, $estado);
+            $retorno = true;
+        }
+        return $retorno;
+    }
 }   

@@ -67,4 +67,27 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         // HACER: MW que valide que exista el usuario y el id de la mesa para que entre al controller
     }
 
+    public function CambiarEstadoMesaController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idMesa = $parametros["idMesa"];
+        $idUsuario = $parametros["idUsuario"];
+        $estado = $parametros["estado"];
+
+        // HACER: MW que valide que exista el usuario y el id de la mesa para que entre al controller
+        //# La mesa se puede estar con los siguientes estados:
+            // *“con cliente esperando pedido” ,
+            // *”con cliente comiendo”,
+            // * “con cliente pagando” y
+            // * “cerrada”.
+
+        if(Usuario::CambiarEstadoMesa($idUsuario,$idMesa, $estado)){
+            $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
+        }else{
+            $retorno = json_encode(array("mensaje" => "estado no cambiado, usuario no es mozo"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+
+    }
 }
