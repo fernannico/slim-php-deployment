@@ -7,11 +7,14 @@ require_once './controllers/UsuarioController.php';
 require_once './controllers/MesaController.php';
 require_once './controllers/ProductoController.php';
 require_once './controllers/PedidoController.php';
+require_once './controllers/LoginController.php';
 require_once './db/AccesoDatos.php';
 require_once './middlewares/AuthUsuariosMW.php';
 require_once './middlewares/pedidosMW.php';
 require_once './middlewares/AuthMesaMW.php';
 require_once './middlewares/AuthMesaEstadoMW.php';
+require_once './middlewares/LoggerMW.php';
+require_once './JWT/AuthJWT.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -30,10 +33,14 @@ $app->addErrorMiddleware(true, true, true);
 $app->addBodyParsingMiddleware();
 
 // Routes
+$app->group('/login', function (RouteCollectorProxy $group) {
+    $group->post('[/]', \LoginController::class . ':LoginController');
+});
+
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(new AuthMWSector());
-    $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-    $group->get('/{id}', \UsuarioController::class . ':TraerUno');  //fx poniendo app/usuarios/4
+    $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\LoggerMW::class);
+    $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno');  
     $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthMesaMW::class);
     $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class);
 });

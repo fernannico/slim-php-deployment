@@ -11,16 +11,14 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $nombre = $parametros['nombre'];
         $puesto = $parametros['puesto'];
         $sector = $parametros['sector'];
+        $contrasena = $parametros['contrasena'];
 
         // Creamos el usuario
         $usr = new Usuario();
         $usr->nombre = $nombre;
         $usr->puesto = $puesto;
-        // if($puesto == "mozo"){
-        //     $usr->sector = null;
-        // }else{
-        //     $usr->sector = $sector;
-        // }
+        $usr->sector = $sector;
+        $usr->contrasena = $contrasena;
         $usr->crearUsuario();
 
         $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
@@ -30,17 +28,27 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
     
+    
     public function TraerUno($request, $response, $args)
     {
-        //ver que pasa con requestQuery que siempre trae todos
-        $id = $args['id'];
-        $usuario = Usuario::obtenerUsuarioPorID($id);
-        $payload = json_encode($usuario);
+        $queryParams = $request->getQueryParams();
+        $id = $queryParams['id'];
+        
+        if(isset($id) & $id !== ""){
+            $usuario = Usuario::obtenerUsuarioPorID($id);
 
-        $response->getBody()->write($payload);
+            if ($usuario) {
+                $payload = json_encode($usuario);
+                $response->getBody()->write($payload);
+            } else {
+                $response->getBody()->write(json_encode(["error" => "Usuario no encontrado"]));
+            }
+        }else{
+            $response->getBody()->write(json_encode(["error" => "ID de usuario no proporcionado"]));            
+        }
         return $response->withHeader('Content-Type', 'application/json');
     }
-    
+
     public function TraerTodos($request, $response, $args)
     {
         $lista = Usuario::obtenerTodosUsuarios();
@@ -73,13 +81,6 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $idMesa = $parametros["idMesa"];
         $idUsuario = $parametros["idUsuario"];
         $estado = $parametros["estado"];
-
-        // HACER: MW que valide que exista el usuario y el id de la mesa para que entre al controller
-        //# La mesa se puede estar con los siguientes estados:
-            // *“con cliente esperando pedido” ,
-            // *”con cliente comiendo”,
-            // * “con cliente pagando” y
-            // * “cerrada”.
 
         if(Usuario::CambiarEstadoMesa($idUsuario,$idMesa, $estado)){
             $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));

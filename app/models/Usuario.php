@@ -10,17 +10,18 @@ class Usuario
     public $sector;
     public $ingresoSist;
     public $cantOperaciones;
+    public $contrasena;
     public $estado;
 
     public function crearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector) VALUES (:nombre, :puesto, :sector)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector,contrasena) VALUES (:nombre, :puesto, :sector, :contrasena)");
 
         $consulta->bindParam(':nombre', $this->nombre);
         $consulta->bindParam(':puesto', $this->puesto);
         $consulta->bindParam(':sector', $this->sector);
-        // $consulta->bindParam(':nombre', $this->estado);
+        $consulta->bindParam(':contrasena', $this->contrasena);
 
         $consulta->execute();
 
@@ -41,7 +42,7 @@ class Usuario
     public static function ValidarSector($sector){
         // validar sector
         $retorno = false;
-        $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar"];
+        $sectoresPermitidos = ["barra", "choperas", "cocina", "candy bar","mozos","socios"];
         if (in_array($sector, $sectoresPermitidos)) {
             $retorno = true;
         }
@@ -49,15 +50,6 @@ class Usuario
         return $retorno;
     }
 
-    // public static function ValidarPuestoConSector($puesto,$sector){
-    //     // Validar restricciones adicionales según el puesto y el sector
-    //     $retorno = false;
-    //     if (($puesto == "cervecero" && $sector == "choperas") || ($puesto == "bartender" && $sector == "barra") || ($puesto == "cocinero" && in_array($sector, ["cocina", "candy bar"]))) {
-    //         $retorno = true;
-    //     }
-
-    //     return $retorno;
-    // }
     public static function obtenerUsuarioPorID($id)
     {
         $usuarioBuscado = null;
@@ -70,10 +62,19 @@ class Usuario
         return $usuarioBuscado;
     }    
 
+    public static function ObtenerUsuarioPorNamePwd($nombre, $password){
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector from usuarios where nombre = :nombre AND contrasena = :contrasena AND estado = 'activo'");
+        $consulta->bindParam(":nombre", $nombre);
+        $consulta->bindParam(":contrasena", $password);
+        $consulta->execute();
+        $usuario = $consulta->fetchObject();
+        return $usuario;
+    }
     public static function obtenerTodosUsuarios()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM usuarios");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, nombre, puesto, sector, ingresoSist, cantOperaciones, estado FROM usuarios");
         $consulta->execute();
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
