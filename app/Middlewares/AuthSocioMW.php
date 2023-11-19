@@ -15,37 +15,35 @@ class AuthSocioMW
      *
      * @return Response
      */
+
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
-        $parametros = $request->getParsedBody();
-        $idUsuario = $parametros["idUsuario"];
-
-        $usuario = Usuario::obtenerUsuarioPorID($idUsuario);
-        $puesto = $usuario->puesto;
-
-        if ($puesto === 'socio') {
-            $response = $handler->handle($request);
-        } else {
+        try {
+            $header = $request->getHeaderLine('Authorization');
+            $token = '';
+            if(!empty($header)) {
+                $token = trim(explode("Bearer", $header)[1]);
+                $datos = AutentificadorJWT::ObtenerData($token);
+                if($datos->puesto === "socio"){                 
+                    //$request->datosToken = $datos;              //el request/response es un objeto, y puedo agregarle/sacarle cosas. Asi que al request del controller le va a llegar lo del body/param y ahora sumado, lo que le paso como data
+                                                                //entonces puedo hacer un MW que me retorne al controller el tiepo de puesto mediante modificar el controller con la data
+                    $request = $request->withAttribute('datosToken', $datos);//retorna en el request la data del token
+                    $response = $handler->handle($request);
+                }else{
+                    throw new Exception('no es socio');
+                }
+            }else{
+                throw new Exception('Token no válido');
+            }
+        } catch (Exception $e) {
+            //throw $th;
             $response = new Response();
-            $payload = json_encode(array("mensaje" => "No sos socio"));
+            $payload = json_encode(array('mensaje' => 'ERROR: solo socios autorizados'));
             $response->getBody()->write($payload);
         }
 
         return $response->withHeader('Content-Type', 'application/json');
-    }
-
     
-        // if(!isset($param['token'])){
-        //     $retorno = json_encode(array("mensaje" => "Token necesario"));
-        // }
-        // else{
-            // $token = $param['token'];
-            // $respuesta = Autenticador::ValidarToken($token, "Admin");
-            // if($respuesta == "Validado"){
-                
-            // }
-            // else{
-            //     $retorno = json_encode(array("mensaje" => $respuesta));
-            // }
-        // }
+    }
+    
 }

@@ -6,25 +6,20 @@ use Slim\Psr7\Response;
 require_once './models/Usuario.php';
 require_once './models/Mesa.php';
 
-class AuthMesaUsuarioMW
+class AuthMesaMW
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
         $parametros = $request->getParsedBody();
         $idMesa = $parametros["idMesa"];
-        $idUsuario = $parametros["idUsuario"];
 
-        if(Usuario::obtenerUsuarioPorID($idUsuario) !== false) {
-            if(Mesa::obtenerMesaPorID($idMesa) !== false){
-                return $handler->handle($request);
-            }else{
-                $response = new Response();
-                $response->getBody()->write(json_encode(["mensaje" => "Mesa no encontrada"]));
-            }
-        } else {
+        if(Mesa::obtenerMesaPorID($idMesa) !== false){
+            return $handler->handle($request);
+        }else{
             $response = new Response();
-            $response->getBody()->write(json_encode(["mensaje" => "Usuario no encontrado"]));
+            $response->getBody()->write(json_encode(["mensaje" => "Mesa no encontrada"]));
         }
+
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

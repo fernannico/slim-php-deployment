@@ -9,12 +9,13 @@ require_once './controllers/ProductoController.php';
 require_once './controllers/PedidoController.php';
 require_once './controllers/LoginController.php';
 require_once './db/AccesoDatos.php';
-require_once './middlewares/AuthUsuariosMW.php';
-require_once './middlewares/pedidosMW.php';
-require_once './middlewares/AuthMesaUsuarioMW.php';
-require_once './middlewares/AuthSocioMW.php';
-require_once './middlewares/AuthMesaEstadoMW.php';
-require_once './middlewares/LoggerMW.php';
+require_once './Middlewares/AuthSectorPuestoMW.php';
+require_once './Middlewares/pedidosEstadoMW.php';
+require_once './Middlewares/AuthMesaMW.php';
+require_once './Middlewares/AuthSocioMW.php';
+require_once './Middlewares/AuthMesaEstadoMW.php';
+require_once './Middlewares/LoggerMW.php';
+require_once './Middlewares/AuthSectorMW.php';
 require_once './JWT/AuthJWT.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
@@ -39,29 +40,29 @@ $app->group('/login', function (RouteCollectorProxy $group) {
 });
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(new AuthMWSector());
+    $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(\AuthSocioMW::class)->add(\AuthSectorPuestoMW::class)->add(\LoggerMW::class);
     $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\LoggerMW::class);
-    $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno');  
-    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthSocioMW::class)->add(\AuthMesaUsuarioMW::class);
-    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class);//habria que hacer un mw de socio o general q valide en el token, que puesto es
-    $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv');//hacer MW que valide que existe un archivo 
-    $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv');//hacer MW que valide que existe un archivo 
+    $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno')->add(\LoggerMW::class);  
+    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthSocioMW::class)->add(\AuthMesaMW::class)->add(\LoggerMW::class);
+    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class)->add(new AuthSectorMW("mozos"))->add(\LoggerMW::class);
+    $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv')->add(\AuthSocioMW::class);//hacer MW que valide que existe un archivo->add(\LoggerMW::class) 
+    $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv')->add(\AuthSocioMW::class);//hacer MW que valide que existe un archivo->add(\LoggerMW::class) 
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \MesaController::class . ':CargarMesa');
-    $group->get('[/]', \MesaController::class . ':TraerTodas');
+    $group->post('[/]', \MesaController::class . ':CargarMesa')->add(\AuthSocioMW::class)->add(\LoggerMW::class);
+    $group->get('[/]', \MesaController::class . ':TraerTodas')->add(\LoggerMW::class);
 });
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \ProductoController::class . ':CargarProducto');
-    $group->get('[/]', \ProductoController::class . ':TraerTodos');
+    $group->post('[/]', \ProductoController::class . ':CargarProducto')->add(\AuthSocioMW::class)->add(\LoggerMW::class);
+    $group->get('[/]', \ProductoController::class . ':TraerTodos')->add(\LoggerMW::class);
 });
 
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \PedidoController::class . ':CargarPedido');
-    $group->get('[/]', \PedidoController::class . ':TraerTodos');
-    $group->put('/estado', \PedidoController::class . ':ModificarEstado')->add(\pedidosMW::class);
+    $group->post('[/]', \PedidoController::class . ':CargarPedido')->add(new AuthSectorMW("mozos"))->add(\LoggerMW::class);
+    $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\LoggerMW::class);
+    $group->put('/estado', \PedidoController::class . ':ModificarEstado')->add(\pedidosEstadoMW::class)->add(\LoggerMW::class);
 });
 
 $app->run();

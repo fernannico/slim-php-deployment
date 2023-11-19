@@ -16,12 +16,17 @@ class LoggerMW
      */
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
-        $header = $request->getHeaderLine('Authorization');
-        $token = trim(explode("Bearer", $header)[1]);
-
+        
         try {
-            AutentificadorJWT::VerificarToken($token);
-            $response = $handler->handle($request);
+            $header = $request->getHeaderLine('Authorization');
+            $token = '';
+            if(!empty($header)) {
+                $token = trim(explode("Bearer", $header)[1]);
+                AutentificadorJWT::VerificarToken($token);
+                $response = $handler->handle($request);
+            }else{
+                throw new Exception('Token no válido');
+            }
         } catch (Exception $e) {
             $response = new Response();
             $payload = json_encode(array('mensaje' => 'ERROR: Hubo un error con el TOKEN'));

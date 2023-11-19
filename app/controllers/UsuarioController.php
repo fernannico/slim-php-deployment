@@ -5,6 +5,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 class UsuarioController extends Usuario /*implements IApiUsable*/
 {
+    
     public function CargarUsuario($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
@@ -59,15 +60,18 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    public function CerrarMesaController($request, $response, $args)
+    public function CerrarMesaController(Request $request, Response $response, $args)
     {
         $parametros = $request->getParsedBody();
         $idMesa = $parametros["idMesa"];
 
+        // $dataToken = $request->getAttribute('datosToken');
+        // var_dump($dataToken->puesto);
+
         if(Usuario::CambiarEstadoMesa($idMesa,"cerrada")){
             $retorno = json_encode(array("mensaje" => "mesa cerrada"));
         }else{
-            $retorno = json_encode(array("mensaje" => "mesa NO cerrada, usuario no es socio"));
+            $retorno = json_encode(array("mensaje" => "mesa NO cerrada"));
         }
         $response->getBody()->write($retorno);
         return $response;
@@ -77,13 +81,15 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
     {
         $parametros = $request->getParsedBody();
         $idMesa = $parametros["idMesa"];
-        $idUsuario = $parametros["idUsuario"];
         $estado = $parametros["estado"];
+
+        // $dataToken = $request->getAttribute('datosToken');
+        // var_dump($dataToken->puesto);
 
         if(Usuario::CambiarEstadoMesa($idMesa, $estado)){
             $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
         }else{
-            $retorno = json_encode(array("mensaje" => "estado no cambiado, usuario no es mozo"));
+            $retorno = json_encode(array("mensaje" => "estado no cambiado"));
         }
         $response->getBody()->write($retorno);
         return $response;
