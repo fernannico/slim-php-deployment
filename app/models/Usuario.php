@@ -13,6 +13,16 @@ class Usuario
     public $contrasena;
     public $estado;
 
+    // public function __construct($id = "",$nombre = "",$puesto = "",$sector = "",$ingresoSist = "",$cantOperaciones = "",$contrasena = "",$estado = "") {
+    //     $this->id = $id;
+    //     $this->nombre = $nombre;
+    //     $this->puesto = $puesto;
+    //     $this->sector = $sector;
+    //     $this->ingresoSist = $ingresoSist;
+    //     $this->cantOperaciones = $cantOperaciones;
+    //     $this->contrasena = $contrasena;
+    //     $this->estado = $estado;
+    // }
     public function crearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -52,7 +62,7 @@ class Usuario
 
     public static function obtenerUsuarioPorID($id)
     {
-        $usuarioBuscado = null;
+        $usuarioBuscado = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("SELECT id, nombre, puesto, sector, ingresoSist, cantOperaciones, estado FROM usuarios WHERE id = :id");
         $consulta->bindParam(":id", $id);
@@ -64,7 +74,7 @@ class Usuario
 
     public static function ObtenerUsuarioPorNamePwd($nombre, $password){
         $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
-        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector from usuarios where nombre = :nombre AND contrasena = :contrasena AND estado = 'activo'");
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto from usuarios where nombre = :nombre AND contrasena = :contrasena AND estado = 'activo'");
         $consulta->bindParam(":nombre", $nombre);
         $consulta->bindParam(":contrasena", $password);
         $consulta->execute();
@@ -79,28 +89,42 @@ class Usuario
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
-    
-    public static function CerrarMesa($idUsuario, $idMesa)
+    public static function obtenerContrasenaPorID($id)
     {
-        $retorno = false;
-        $usuario = self::obtenerUsuarioPorID($idUsuario);
-        // $mesa = Mesa::obtenerMesaPorID($idMesa);
-        if($usuario->puesto == "socio"){
-            Mesa::actualizarEstado($idMesa, "cerrada");
-            $retorno = true;
-        }
-        return $retorno;
-    }
+        $contrasena = false;
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT contrasena FROM usuarios WHERE id = :id");
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
         
-    public static function CambiarEstadoMesa($idUsuario, $idMesa, $estado)
+        // $usuarioBuscado = $consulta->fetchObject('Usuario');
+        // $resultado = $consulta->fetch(PDO::FETCH_ASSOC);
+        $contrasena = $consulta->fetchColumn();
+        return $contrasena;
+    }    
+    // public static function CerrarMesa($idMesa)
+    // {
+    //     $retorno = false;
+    //     // $usuario = self::obtenerUsuarioPorID($idUsuario);
+    //     // $mesa = Mesa::obtenerMesaPorID($idMesa);
+    //     // if($usuario->puesto == "socio"){
+    //     if(Mesa::actualizarEstado($idMesa, "cerrada")){
+    //         $retorno = true;
+    //     }
+    //     // }
+    //     return $retorno;
+    // }
+        
+    public static function CambiarEstadoMesa($idMesa, $estado)
     {
         $retorno = false;
-        $usuario = self::obtenerUsuarioPorID($idUsuario);
+        // $usuario = self::obtenerUsuarioPorID($idUsuario);
         // $mesa = Mesa::obtenerMesaPorID($idMesa);
-        if($usuario->puesto == "mozo"){
-            Mesa::actualizarEstado($idMesa, $estado);
+        // if($usuario->puesto == "mozo"){
+        if(Mesa::actualizarEstado($idMesa, $estado)){
             $retorno = true;
         }
+        // }
         return $retorno;
     }
 }   

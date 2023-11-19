@@ -44,11 +44,20 @@ class Mesa
     
     public static function actualizarEstado($id, $estado)
     {
-        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE mesas SET estado = :estado WHERE id = :id");
-        $consulta->bindParam(":id", $id);
-        $consulta->bindParam(":estado", $estado);
-        $consulta->execute();
+        $retorno = false;
+        try {
+            //code...
+            $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+            $consulta = $objetoAccesoDato->prepararConsulta("UPDATE mesas SET estado = :estado WHERE id = :id");
+            $consulta->bindParam(":id", $id);
+            $consulta->bindParam(":estado", $estado);
+            $consulta->execute();
+            $retorno = true;
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }
+
+        return $retorno;
     }
 
 }

@@ -1,0 +1,18 @@
+id,nombre,puesto,sector,ingresoSist,cantOperaciones,contrasena,estado
+2,ivan,mozo,mozos,2023-11-05,0,1234,activo
+4,tuki,socio,socios,2023-11-05,0,1234,activo
+6,tuki,mozo,mozos,2023-11-06,0,1234,activo
+7,tuki,bartender,barra,2023-11-06,0,1234,activo
+8,tuki,cocinero,CandyBar,2023-11-06,0,1234,activo
+9,tuki,cocinero,CandyBar,2023-11-06,0,1234,activo
+10,tuki,mozo,mozos,2023-11-06,0,1234,activo
+11,tuki,cocinero,CandyBar,2023-11-06,0,1234,activo
+12,tuki,cocinero,"candy bar",2023-11-06,0,1234,activo
+13,tuki,bartender,barra,2023-11-06,0,1234,activo
+14,tuki,mozo,mozos,2023-11-11,0,1234,activo
+15,tukie,mozo,mozos,2023-11-15,0,15987,activo
+16,tukiemw,mozo,mozos,2023-11-15,0,15987,activo
+30,tukiemw,mozo,mozos,2023-11-18,0,15987,activo
+166,cargado1,mozo,mozos,2023-11-18,0,12344,activo
+167,cargado2,socio,socios,2023-11-18,0,12345,activo
+168,cargado3,mozo,mozos,2023-11-18,0,12346,activo

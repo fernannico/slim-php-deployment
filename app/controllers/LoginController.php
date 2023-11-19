@@ -13,7 +13,7 @@ class LoginController{
         $usuario = Usuario::ObtenerUsuarioPorNamePwd($nombre, $contrasenia);
 
         if($usuario !== null){ 
-            $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector);
+            $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector, 'puesto'=> $usuario->puesto);
             $token = AutentificadorJWT::CrearToken($datos);
             $payload = json_encode(array('jwt' => $token));
         } else {

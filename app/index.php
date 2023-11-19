@@ -11,7 +11,8 @@ require_once './controllers/LoginController.php';
 require_once './db/AccesoDatos.php';
 require_once './middlewares/AuthUsuariosMW.php';
 require_once './middlewares/pedidosMW.php';
-require_once './middlewares/AuthMesaMW.php';
+require_once './middlewares/AuthMesaUsuarioMW.php';
+require_once './middlewares/AuthSocioMW.php';
 require_once './middlewares/AuthMesaEstadoMW.php';
 require_once './middlewares/LoggerMW.php';
 require_once './JWT/AuthJWT.php';
@@ -41,8 +42,10 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
     $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(new AuthMWSector());
     $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\LoggerMW::class);
     $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno');  
-    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthMesaMW::class);
-    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class);
+    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthSocioMW::class)->add(\AuthMesaUsuarioMW::class);
+    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class);//habria que hacer un mw de socio o general q valide en el token, que puesto es
+    $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv');//hacer MW que valide que existe un archivo 
+    $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv');//hacer MW que valide que existe un archivo 
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
