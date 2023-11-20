@@ -54,7 +54,7 @@ class ProductoController extends Producto /*implements IApiUsable*/
     public function ModificarProductoController($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
-        $id = $parametros["id"];
+        $id = $parametros["idProducto"];
         $descripcion = $parametros["descripcion"];
         $precio = $parametros["precio"];
         $sector = $parametros["sector"];

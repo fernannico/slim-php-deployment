@@ -11,7 +11,7 @@ class AuthProductoMW
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
         $parametros = $request->getParsedBody();
-        $idProducto = $parametros["id"];
+        $idProducto = $parametros["idProducto"];
 
         if(Producto::ObtenerProductoPorID($idProducto) !== false){
             return $handler->handle($request);

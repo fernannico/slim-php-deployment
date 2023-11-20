@@ -4,28 +4,20 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 
-class AuthMesaEstadoMW
+class AuthMesaAbiertaPedidoMW
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
         $parametros = $request->getParsedBody();
 
-        $estado = $parametros['estado'];
-
-        $estadosPermitidos = ["abierta","pidiendo","con cliente esperando pedido", "con cliente comiendo", "con cliente pagando"];
+        $idMesa = $parametros['idMesa'];
 
         //validamos estado
-        if (in_array($estado, $estadosPermitidos)) {
+        if (Mesa::ObtenerEstadoPorID($idMesa) === 'abierta' || Mesa::ObtenerEstadoPorID($idMesa) === 'pidiendo' ){
             $response = $handler->handle($request);
         }else{
             $response = new Response();
-            $payload = json_encode(array('mensaje' => 'estado no identificado
-            <BR>Estados permitidos: 
-            <br> - abierta,
-            <br> - pidiendo,
-            <br> - con cliente esperando pedido,
-            <br> - con cliente comiendo,
-            <br> - con cliente pagando'));
+            $payload = json_encode(array('mensaje' => 'La mesa esta ocupada o cerrada. Para hacer un pedido la mesa tiene que estar abierta o con estado "pidiendo"'));
             $response->getBody()->write($payload);
         }
 

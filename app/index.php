@@ -17,6 +17,7 @@ require_once './Middlewares/AuthProductoMW.php';
 require_once './Middlewares/AuthSocioMW.php';
 require_once './Middlewares/AuthCantSocios.php';
 require_once './Middlewares/AuthMesaEstadoMW.php';
+require_once './Middlewares/AuthMesaAbiertaPedidoMW.php';
 require_once './Middlewares/AuthUsuarioEstadoMW.php';
 require_once './Middlewares/LoggerMW.php';
 require_once './Middlewares/AuthSectorMW.php';
@@ -92,7 +93,7 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
     $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')
             ->add(\AuthMesaMW::class)           //validar que exista la mesa
             ->add(\AuthMesaEstadoMW::class)     //validar estados posibles
-            ->add(new AuthSectorMW("mozo"))     //validar el sector
+            ->add(new AuthSectorMW("mozos"))     //validar el sector
             ->add(\LoggerMW::class);            //validar que haya token
 });
 
@@ -114,14 +115,17 @@ $app->group('/productos', function (RouteCollectorProxy $group) {
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
     //alta
     $group->post('[/]', \PedidoController::class . ':CargarPedido')
-            ->add(new AuthSectorMW("mozos"))    //validar el sector
-            ->add(\LoggerMW::class);            //validar que haya token
+            ->add(\AuthMesaMW::class)               //validar que exista la mesa
+            ->add(\AuthProductoMW::class)           //validar que exista el producto
+            ->add(\AuthMesaAbiertaPedidoMW::class)  //validar que la mesa no este ocupada (abierta o pidiendo)
+            ->add(new AuthSectorMW("mozos"))        //validar el sector
+            ->add(\LoggerMW::class);                //validar que haya token
     //show
     $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\LoggerMW::class);            //validar que haya token
     //modificacion (estado)
-    $group->put('/estado', \PedidoController::class . ':ModificarEstado')
-            ->add(\pedidosEstadoMW::class)      //validar estados posibles
-            ->add(\LoggerMW::class);            //validar que haya token
+    $group->put('/estado', \PedidoController::class . ':ModificarEstadoController');
+            // ->add(\pedidosEstadoMW::class)      //validar estados posibles
+            // ->add(\LoggerMW::class);            //validar que haya token
 });
 
 $app->run();

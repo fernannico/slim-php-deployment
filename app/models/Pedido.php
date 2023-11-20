@@ -5,7 +5,7 @@ class Pedido
     public $codigoAN;
     public $idMozo;
     public $idMesa;
-    public $productos;
+    public $idProducto;
     public $tiempoFinalizacion;
     public $estado;
 
@@ -26,12 +26,12 @@ class Pedido
     public function crearPedido()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, idMozo, idMesa, productos, tiempoFinalizacion, estado) VALUES (:codigoAN, :idMozo, :idMesa, :productos, :tiempoFinalizacion, :estado)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, idMozo, idMesa, idProducto, tiempoFinalizacion, estado) VALUES (:codigoAN, :idMozo, :idMesa, :idProducto, :tiempoFinalizacion, :estado)");
 
         $consulta->bindParam(':codigoAN', $this->codigoAN);
         $consulta->bindParam(':idMozo', $this->idMozo);
         $consulta->bindParam(':idMesa', $this->idMesa);
-        $consulta->bindParam(':productos', $this->productos);
+        $consulta->bindParam(':idProducto', $this->idProducto);
         $consulta->bindParam(':tiempoFinalizacion', $this->tiempoFinalizacion);
         $consulta->bindParam(':estado', $this->estado);
 
@@ -102,9 +102,18 @@ class Pedido
         // return $retorno;
         //no tiene sentido poner los mensajes aca porque solo salen los mensajes del controller
     }
+    public function ObtenerCodigoANMesaPidiendo($idMesa)
+    {
+        $codigoAN = false;
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT codigoAN FROM pedidos WHERE idMesa = :idMesa");
+        $consulta->bindParam(":idMesa", $idMesa);
+        $consulta->execute();
+        
+        $codigoAN = $consulta->fetchColumn();
+        return $codigoAN;
 
-
-
+    }
 }
 
 ?>

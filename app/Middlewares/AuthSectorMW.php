@@ -32,6 +32,7 @@ class AuthSectorMW
         // }
 
         if($data->sector === $this->sector || $data->sector === 'socios'){
+            $request = $request->withAttribute('datosToken', $data);//retorna en el request la data del token
             $response = $handler->handle($request);
         }else{
             $response = new Response();

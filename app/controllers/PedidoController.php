@@ -7,21 +7,32 @@ class PedidoController extends Pedido /*implements IApiUsable*/
     public function CargarPedido($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
-        $idMozo = $parametros['idMozo'];
-        $idMesa = $parametros['idMesa'];
-        $productos = $parametros['productos'];
 
-        //Codigo aleatorio
+        $dataToken = $request->getAttribute('datosToken');
+        // var_dump($dataToken);
+
+        $idMozo = $dataToken->id;
+        $idMesa = $parametros['idMesa'];
+        $idProducto = $parametros['idProducto'];
         $codigoAleatorio = Pedido::generarCodigoAleatorio();
+
+        //estado de la mesa
+        $estadoMesa = Mesa::ObtenerEstadoPorID($idMesa);
+
+        // si la mesa esta en estado "pidiendo" Obtener el código aleatorio para la misma mesa de ese pedido
+        if ($estadoMesa === 'pidiendo') {
+            $codigoAleatorio = Pedido::ObtenerCodigoANMesaPidiendo($idMesa);//lo pisa al codigoAN anterior
+        }//si no esta en estado "pidiendo", el codigoAN es el nuevo creado antes
         
         // Creamos el pedido
         $usr = new Pedido();
         $usr->codigoAN = $codigoAleatorio;
-        $usr->idMozo = $idMozo;
+        $usr->idMozo = $idMozo; 
         $usr->idMesa = $idMesa;
-        $usr->productos = $productos;
+        $usr->idProducto = $idProducto;
         $usr->estado = "encargado";
         $usr->crearPedido();
+        Mesa::actualizarEstado($idMesa,"pidiendo");
 
         $payload = json_encode(array("mensaje" => "Pedido creado con exito"));
 
@@ -50,7 +61,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     } 
 
-    public static function ModificarEstado($request, $response, $args) {
+    public static function ModificarEstadoController($request, $response, $args) {
         $parametros = $request->getParsedBody();
         $codigoAN = $parametros["codigoAN"];
         $tiempoFinalizacion = $parametros["tiempoFinalizacion"];

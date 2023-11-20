@@ -60,4 +60,15 @@ class Mesa
         return $retorno;
     }
 
+    public static function ObtenerEstadoPorID($id)
+    {
+        $estado = false;
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT estado FROM mesas WHERE id = :id");
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+        
+        $estado = $consulta->fetchColumn();
+        return $estado;
+    }    
 }
