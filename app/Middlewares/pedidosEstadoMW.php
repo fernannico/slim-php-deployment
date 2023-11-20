@@ -19,6 +19,8 @@ class pedidosEstadoMW
             $mensajePrevio = "Estado cambiado a 'en preparacion'";//    json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
         }elseif ($estado == "listo para servir") {
             $mensajePrevio = "el pedido ya esta listo para servir";
+        }elseif ($estado == "entregado") {
+            $mensajePrevio = "el pedido ya esta entregado";
         }
         // Fecha antes
         $before = date('Y-m-d H:i:s');

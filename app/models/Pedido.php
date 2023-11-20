@@ -122,7 +122,7 @@ class Pedido
         // return $retorno;
         //no tiene sentido poner los mensajes aca porque solo salen los mensajes del controller
     }
-    public function ObtenerCodigoANMesaPidiendo($idMesa)
+    public static function ObtenerCodigoANMesaPidiendo($idMesa)
     {
         $codigoAN = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -133,6 +133,17 @@ class Pedido
         $codigoAN = $consulta->fetchColumn();
         return $codigoAN;
 
+    }
+
+    public static function obtenerPedidosPorCodigoAN($codigoAN)
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE codigoAN = :codigoAN");
+        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta->execute();
+        
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
+        
     }
 }
 

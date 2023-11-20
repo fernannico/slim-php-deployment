@@ -129,14 +129,18 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
                                                     //validar que no sea mozo
             ->add(\LoggerMW::class);                //validar que haya token
 
-    //show pedidos para entregar
-    $group->get('/pedidosAEntregar', \PedidoController::class . ':TraerPedidosAEntregarController');
-        //    ->add(\LoggerMW::class);                //validar que haya token
-
-    //modificacion (estado2→ tomar pedido)
+    //modificacion (estado--> tomar pedido)
     $group->put('/estado', \PedidoController::class . ':TomarPedidoController')
-            ->add(\pedidosEstadoMW::class)      //validar estados 
+            ->add(\pedidosEstadoMW::class)      //estados del pedido previo y finalizado
             ->add(\LoggerMW::class);            //validar que haya token
+
+    //show pedidos para entregar
+    $group->get('/pedidosAEntregar', \PedidoController::class . ':obtenerPedidosListosParaServirController')
+            ->add(new AuthSectorMW("mozos"))        //validar el sector
+            ->add(\LoggerMW::class);                //validar que haya token
+
+    //modificacion (estado2--> entregar pedido)
+    $group->put('/entregarPedidos', \PedidoController::class . ':EntregarPedidoController');
 });
 
 $app->run();

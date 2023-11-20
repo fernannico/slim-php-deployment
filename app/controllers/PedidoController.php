@@ -108,7 +108,78 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response;
     }
 
-    
+    public static function obtenerPedidosListosParaServirController($request, $response, $args)
+    {
+        $listaPedidos = Pedido::obtenerTodosPedidos(); // Obtener todos los pedidos
+
+        // Agrupar pedidos por codigoAN
+        $pedidosPorCodigo = [];
+        foreach ($listaPedidos as $pedido) {
+            $pedidosPorCodigo[$pedido->codigoAN][] = $pedido;
+        }
+
+        // Filtrar los codigoAN que tienen al menos un pedido que no está listo para servir
+        $codigoANListosParaServir = [];
+        foreach ($pedidosPorCodigo as $codigo => $pedidos) {
+            $todosListosParaServir = true;
+            foreach ($pedidos as $pedido) {
+                if ($pedido->estado !== "listo para servir") {
+                    $todosListosParaServir = false;
+                    break;
+                }
+            }
+            if ($todosListosParaServir) {
+                $codigoANListosParaServir[] = $codigo;
+            }
+        }
+
+        // Crear una lista de objetos con codigoAN y estado "listo para servir"
+        $pedidosListosParaServir = [];
+        foreach ($codigoANListosParaServir as $codigo) {
+            $pedido = new stdClass();
+            $pedido->codigoAN = $codigo;
+            $pedido->estado = "listo para servir"; // Puedes asignar directamente este estado si todos son "listo para servir"
+            $pedidosListosParaServir[] = $pedido;
+        }
+
+        $payload = json_encode(array("listaPedido" => $pedidosListosParaServir));
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /*public static function EntregarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $codigoAN = $parametros["codigoAN"];
+
+        Pedido::actualizarEstado($id, "entregado");
+        Mesa::actualizarEstado($idMesa,"con cliente comiendo");
+
+        $retorno = json_encode(array("mensaje" => "pedido " .$codigoAN . " entregado"));
+
+        $response->getBody()->write($retorno);
+        return $response;
+    }*/
+    public static function EntregarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $codigoAN = $parametros["codigoAN"];
+
+        $pedidosConCodigoAN = Pedido::obtenerPedidosPorCodigoAN($codigoAN);
+        // var_dump($pedidosConCodigoAN);
+
+        foreach ($pedidosConCodigoAN as $pedido) {
+            // var_dump($pedido);
+            $id = $pedido->idPedido;
+            Pedido::actualizarEstado($id,"entregado");
+        }
+
+        $retorno = json_encode(array("mensaje" => "Pedidos con codigoAN " . $codigoAN . " entregados"));
+
+        $response->getBody()->write($retorno);
+        return $response;
+    }
+
 }
 
 ?>
