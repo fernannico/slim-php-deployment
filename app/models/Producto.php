@@ -41,6 +41,17 @@ class Producto
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Producto');
     }
+    /*
+    public static function obtenerProductosPorSector($sector)
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, descripcion, precio, sector FROM productos WHERE sector = :sector");
+        $consulta->bindParam(":sector", $sector);
+        $consulta->execute();
+        
+        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Producto');
+    }
+    */
 
     public static function ModificarProducto($id, $descripcion, $precio, $sector)
     {

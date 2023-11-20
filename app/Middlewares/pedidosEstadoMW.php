@@ -11,11 +11,11 @@ class pedidosEstadoMW
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
         $parametros = $request->getParsedBody();
-        $codigoAN = $parametros["codigoAN"];
+        $idPedido = $parametros["idPedido"];
 
-        $estado = Pedido::RetornarEstado($codigoAN);
+        $estado = Pedido::RetornarEstado($idPedido);
 
-        if ($estado == "pedido") {
+        if ($estado == "pendiente") {
             $mensajePrevio = "Estado cambiado a 'en preparacion'";//    json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
         }elseif ($estado == "listo para servir") {
             $mensajePrevio = "el pedido ya esta listo para servir";

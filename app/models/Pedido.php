@@ -2,6 +2,7 @@
 
 class Pedido
 {
+    public $idPedido;
     public $codigoAN;
     public $idMozo;
     public $idMesa;
@@ -61,20 +62,21 @@ class Pedido
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
     }
 
-    public static function actualizarEstado($codigoAN, $estado)
+    public static function obtenerPedidosPendientesPorSector($sector)
     {
-        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET estado = :estado WHERE codigoAN = :codigoAN");
-        $consulta->bindParam(":estado", $estado);
-        $consulta->bindParam(":codigoAN", $codigoAN);
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos JOIN productos ON pedidos.idProducto = productos.id WHERE productos.sector = :sector AND pedidos.estado = 'pendiente'");
+        $consulta->bindParam(":sector", $sector);
         $consulta->execute();
+        
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public static function RetornarEstado($codigoAN)
+    public static function RetornarEstado($id)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
-        $consulta = $objetoAccesoDato->prepararConsulta("SELECT estado FROM pedidos WHERE codigoAN = :codigoAN");
-        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT estado FROM pedidos WHERE idPedido = :id");
+        $consulta->bindParam(":id", $id);
         $consulta->execute();
     
         // Obtener el estado del pedido
@@ -86,17 +88,35 @@ class Pedido
             return "No se encontró el pedido"; // Manejo de error si no se encuentra el pedido
         }
     }
-    
-    public static function CambiarEstadoPedido($codigoAN,$tiempoFinalizacion)
-    {
-        $estado = Pedido::RetornarEstado($codigoAN);
 
-        if ($estado === "pedido") {
-            Pedido::actualizarEstado($codigoAN, "en preparacion");
+    public static function actualizarEstado($id, $estado)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET estado = :estado WHERE idPedido = :id");
+        $consulta->bindParam(":estado", $estado);
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+    }
+    
+    public static function actualizarTiempoFinalizacion($id,$tiempoFinalizacion)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET tiempoFinalizacion = :tiempoFinalizacion WHERE idPedido = :id");
+        $consulta->bindParam(":tiempoFinalizacion", $tiempoFinalizacion);
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+    }
+
+    public static function CambiarEstadoPedidoPorId($id,$tiempoFinalizacion)
+    {
+        $estado = Pedido::RetornarEstado($id);
+
+        if ($estado === "pendiente") {
+            Pedido::actualizarEstado($id, "en preparacion");
             // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
         } elseif ($estado === "en preparacion") {
             sleep($tiempoFinalizacion);
-            Pedido::actualizarEstado($codigoAN, "listo para servir");
+            Pedido::actualizarEstado($id, "listo para servir");
             // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'finalizado'"));
         }
         // return $retorno;

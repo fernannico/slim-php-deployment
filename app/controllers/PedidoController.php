@@ -19,7 +19,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         //estado de la mesa
         $estadoMesa = Mesa::ObtenerEstadoPorID($idMesa);
 
-        // si la mesa esta en estado "pidiendo" Obtener el código aleatorio para la misma mesa de ese pedido
+        // si la mesa esta en estado "pidiendo", obtener el código aleatorio para la misma mesa de ese pedido
         if ($estadoMesa === 'pidiendo') {
             $codigoAleatorio = Pedido::ObtenerCodigoANMesaPidiendo($idMesa);//lo pisa al codigoAN anterior
         }//si no esta en estado "pidiendo", el codigoAN es el nuevo creado antes
@@ -30,7 +30,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $usr->idMozo = $idMozo; 
         $usr->idMesa = $idMesa;
         $usr->idProducto = $idProducto;
-        $usr->estado = "encargado";
+        $usr->estado = "pendiente";
         $usr->crearPedido();
         Mesa::actualizarEstado($idMesa,"pidiendo");
 
@@ -61,27 +61,47 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     } 
 
-    public static function ModificarEstadoController($request, $response, $args) {
+    public function TraerPedidosPendientesPorSectorController($request, $response, $args)
+    {       
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
+    
+        $data = AutentificadorJWT::ObtenerData($token);
+        // var_dump($data);
+        // echo "<br>";
+        // var_dump($data->sector);
+        // echo "<br>";
+
+        $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($data->sector);
+        $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    
+    }
+
+    public static function TomarPedidoController($request, $response, $args) {
         $parametros = $request->getParsedBody();
-        $codigoAN = $parametros["codigoAN"];
+        $idPedido = $parametros["idPedido"];
         $tiempoFinalizacion = $parametros["tiempoFinalizacion"];
 
-        $estado = Pedido::RetornarEstado($codigoAN);
+        $estado = Pedido::RetornarEstado($idPedido);
         
         // ver si MW con si es pedido, pasar x segundos + mje y despues de esos segudos ir al header
         
         do {
-            if ($estado == "pedido") {
-                Pedido::CambiarEstadoPedido($codigoAN,$tiempoFinalizacion);
+            if ($estado == "pendiente") {
+                Pedido::CambiarEstadoPedidoPorId($idPedido,$tiempoFinalizacion);
+                Pedido::actualizarTiempoFinalizacion($idPedido,$tiempoFinalizacion);    //cambiar tiempo de finalizacion
                 // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
                 //este mensaje nunca va a aparecer desde el controller
             } else if($estado === "en preparacion"){
-                Pedido::CambiarEstadoPedido($codigoAN,$tiempoFinalizacion);
+                Pedido::CambiarEstadoPedidoPorId($idPedido,$tiempoFinalizacion);
                 $retorno = json_encode(array("mensaje" => "Estado cambiado a 'listo para servir'"));
             } else if($estado === "listo para servir") {
                 $retorno = json_encode(array("mensaje" => "el pedido ya esta listo para servir"));
             }
-            $estado = Pedido::RetornarEstado($codigoAN);
+            $estado = Pedido::RetornarEstado($idPedido);
         }while($estado !== "listo para servir");
 
         $response->getBody()->write($retorno);
