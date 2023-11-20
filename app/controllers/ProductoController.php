@@ -51,4 +51,19 @@ class ProductoController extends Producto /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public function ModificarProductoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $id = $parametros["id"];
+        $descripcion = $parametros["descripcion"];
+        $precio = $parametros["precio"];
+        $sector = $parametros["sector"];
+        if(Producto::ModificarProducto($id,$descripcion,$precio,$sector)){
+            $retorno = json_encode(array("mensaje" => "Producto modificado: "));
+        }else{
+            $retorno = json_encode(array("mensaje" => "Producto no modificado"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;        
+    }
 }

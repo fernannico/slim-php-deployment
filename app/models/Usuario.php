@@ -23,7 +23,7 @@ class Usuario
     //     $this->contrasena = $contrasena;
     //     $this->estado = $estado;
     // }
-    public function crearUsuario()
+    public function CrearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
         $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector,contrasena) VALUES (:nombre, :puesto, :sector, :contrasena)");
@@ -60,7 +60,7 @@ class Usuario
         return $retorno;
     }
 
-    public static function obtenerUsuarioPorID($id)
+    public static function ObtenerUsuarioPorID($id)
     {
         $usuarioBuscado = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -89,7 +89,7 @@ class Usuario
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Usuario');
     }
-    public static function obtenerContrasenaPorID($id)
+    public static function ObtenerContrasenaPorID($id)
     {
         $contrasena = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -102,29 +102,61 @@ class Usuario
         $contrasena = $consulta->fetchColumn();
         return $contrasena;
     }    
-    // public static function CerrarMesa($idMesa)
-    // {
-    //     $retorno = false;
-    //     // $usuario = self::obtenerUsuarioPorID($idUsuario);
-    //     // $mesa = Mesa::obtenerMesaPorID($idMesa);
-    //     // if($usuario->puesto == "socio"){
-    //     if(Mesa::actualizarEstado($idMesa, "cerrada")){
-    //         $retorno = true;
-    //     }
-    //     // }
-    //     return $retorno;
-    // }
         
     public static function CambiarEstadoMesa($idMesa, $estado)
     {
         $retorno = false;
-        // $usuario = self::obtenerUsuarioPorID($idUsuario);
-        // $mesa = Mesa::obtenerMesaPorID($idMesa);
-        // if($usuario->puesto == "mozo"){
         if(Mesa::actualizarEstado($idMesa, $estado)){
             $retorno = true;
         }
-        // }
+        return $retorno;
+    }
+
+    public static function CambiarEstadoUsuario($idUsuario, $estado) 
+    {
+        $retorno = false;
+        if(Usuario::actualizarEstado($idUsuario, $estado)){
+            $retorno = true;
+        }
+        return $retorno;        
+    }
+
+    public static function ActualizarEstado($idUsuario, $estado)
+    {
+        $retorno = false;
+        try {
+            //code...
+            $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+            $consulta = $objetoAccesoDato->prepararConsulta("UPDATE usuarios SET estado = :estado WHERE id = :id");
+            $consulta->bindParam(":id", $idUsuario);
+            $consulta->bindParam(":estado", $estado);
+            $consulta->execute();
+            $retorno = true;
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }
+
+        return $retorno;
+    }
+
+    public static function ModificarUsuario($id, $nombre, $puesto, $sector, $contrasena)
+    {
+        // $retorno = false;
+        try {
+            //code...
+            $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
+            $consulta =$objetoAccesoDato->prepararConsulta("UPDATE usuarios SET nombre = :nombre, puesto = :puesto, sector = :sector, contrasena = :contrasena WHERE id = :id");
+            $consulta->bindParam(':nombre', $nombre);
+            $consulta->bindParam(':puesto', $puesto);
+            $consulta->bindParam(':sector', $sector);
+            $consulta->bindParam(':contrasena', $contrasena);
+            $consulta->bindParam(':id', $id);
+            $consulta->execute();
+            $retorno = true;
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }
+        
         return $retorno;
     }
 }   

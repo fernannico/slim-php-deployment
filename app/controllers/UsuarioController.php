@@ -95,6 +95,42 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         return $response;
     }
 
+    public function CambiarEstadoUsuarioController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idUsuario = $parametros["idUsuario"];
+        $estado = $parametros["estado"];
+
+        if(Usuario::CambiarEstadoUsuario($idUsuario, $estado)){
+            $retorno = json_encode(array("mensaje" => "estado del usuario cambiado: " . $estado));
+        }else{
+            $retorno = json_encode(array("mensaje" => "estado no cambiado"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+
+
+    }
+
+    public function ModificarUsuarioController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idUsuario = $parametros["idUsuario"];
+        $nombre = $parametros["nombre"];
+        $puesto = $parametros["puesto"];
+        $sector = $parametros["sector"];
+        $contrasena = $parametros["contrasena"];
+        // $estado = $parametros["estado"];
+        if(Usuario::ModificarUsuario($idUsuario,$nombre,$puesto,$sector,$contrasena)){
+            $retorno = json_encode(array("mensaje" => "Usuario modificado: "));
+        }else{
+            $retorno = json_encode(array("mensaje" => "Usuario no modificado"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+
+    }
+
     public function CargarUsuariosDesdeCsv($request,$response, $args)
     {
         $uploadedFiles = $request->getUploadedFiles();

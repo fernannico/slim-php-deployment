@@ -31,8 +31,8 @@ class AuthSectorPuestoMW
                         <br>mozo -> mozos
                         <br>socio -> socios
                         <br>bartender -> barra
-                        <br>cerveceros -> choperas
-                        <br>cocineros -> cocina o candy bar"));
+                        <br>cervecero -> choperas
+                        <br>cocinero -> cocina o candy bar"));
                         
                         $response->getBody()->write($payload);
                     }   

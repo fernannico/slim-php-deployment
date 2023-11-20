@@ -20,18 +20,18 @@ class Producto
 
         return $objAccesoDatos->obtenerUltimoId();
     }
-    /*
-    public static function obtenerProductoPorID($id)
+    
+    public static function ObtenerProductoPorID($id)
     {
+        $productoBuscado = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM productos WHERE id = $id");
-        // $consulta->bindValue(1, $id, PDO::PARAM_INT);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, descripcion, precio, sector FROM productos WHERE id = :id");
+        $consulta->bindParam(":id", $id);
         $consulta->execute();
         
         $productoBuscado = $consulta->fetchObject('Producto');
         return $productoBuscado;
-    }
-    */
+    }   
 
     public static function obtenerTodosProductos()
     {
@@ -40,6 +40,26 @@ class Producto
         $consulta->execute();
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Producto');
+    }
+
+    public static function ModificarProducto($id, $descripcion, $precio, $sector)
+    {
+        // $retorno = false;
+        try {
+            //code...
+            $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
+            $consulta =$objetoAccesoDato->prepararConsulta("UPDATE productos SET descripcion = :descripcion, precio = :precio, sector = :sector WHERE id = :id");
+            $consulta->bindParam(':descripcion', $descripcion);
+            $consulta->bindParam(':precio', $precio);
+            $consulta->bindParam(':sector', $sector);
+            $consulta->bindParam(':id', $id);
+            $consulta->execute();
+            $retorno = true;
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }
+        
+        return $retorno;
     }
 }
 ?>

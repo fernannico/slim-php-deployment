@@ -12,8 +12,12 @@ require_once './db/AccesoDatos.php';
 require_once './Middlewares/AuthSectorPuestoMW.php';
 require_once './Middlewares/pedidosEstadoMW.php';
 require_once './Middlewares/AuthMesaMW.php';
+require_once './Middlewares/AuthUsuarioMW.php';
+require_once './Middlewares/AuthProductoMW.php';
 require_once './Middlewares/AuthSocioMW.php';
+require_once './Middlewares/AuthCantSocios.php';
 require_once './Middlewares/AuthMesaEstadoMW.php';
+require_once './Middlewares/AuthUsuarioEstadoMW.php';
 require_once './Middlewares/LoggerMW.php';
 require_once './Middlewares/AuthSectorMW.php';
 require_once './JWT/AuthJWT.php';
@@ -40,29 +44,84 @@ $app->group('/login', function (RouteCollectorProxy $group) {
 });
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \UsuarioController::class . ':CargarUsuario')->add(\AuthSocioMW::class)->add(\AuthSectorPuestoMW::class)->add(\LoggerMW::class);
-    $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\LoggerMW::class);
-    $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno')->add(\LoggerMW::class);  
-    $group->put('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')->add(\AuthSocioMW::class)->add(\AuthMesaMW::class)->add(\LoggerMW::class);
-    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')->add(\AuthMesaEstadoMW::class)->add(new AuthSectorMW("mozos"))->add(\LoggerMW::class);
-    $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv')->add(\AuthSocioMW::class);//hacer MW que valide que existe un archivo->add(\LoggerMW::class) 
-    $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv')->add(\AuthSocioMW::class);//hacer MW que valide que existe un archivo->add(\LoggerMW::class) 
+    //alta
+    $group->post('[/]', \UsuarioController::class . ':CargarUsuario')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\AuthSectorPuestoMW::class)   //validar puesto con sector
+            ->add(\AuthCantSocios::class)       //validar que no sean mas de 3 socios
+            ->add(\LoggerMW::class);            //validar que haya token
+    //show
+    $group->get('[/]', \UsuarioController::class . ':TraerTodos')->add(\LoggerMW::class);            //validar que haya token
+    $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno')->add(\LoggerMW::class);            //validar que haya token  
+    //baja
+    $group->delete('/estadoUsuario', \UsuarioController::class . ':CambiarEstadoUsuarioController')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\AuthUsuarioMW::class)        //validar que exista el usuario
+            ->add(\AuthUsuarioEstadoMW::class)  //validar estados posibles
+            ->add(\LoggerMW::class);            //validar que haya token
+    //modificacion
+    $group->put('/modificarUsuario', \UsuarioController::class . ':ModificarUsuarioController')
+            ->add(\AuthUsuarioMW::class)        //validar que exista el usuario
+            ->add(\AuthSectorPuestoMW::class)   //validar puesto con sector
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\AuthCantSocios::class)       //validar que no sean mas de 3 socios
+            ->add(\LoggerMW::class);            //validar que haya token
+    //CSV
+    $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\LoggerMW::class);            //validar que haya token
+    $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\LoggerMW::class);            //validar que haya token
 });
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \MesaController::class . ':CargarMesa')->add(\AuthSocioMW::class)->add(\LoggerMW::class);
-    $group->get('[/]', \MesaController::class . ':TraerTodas')->add(\LoggerMW::class);
+    //alta
+    $group->post('[/]', \MesaController::class . ':CargarMesa')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\LoggerMW::class);            //validar que haya token
+    //show
+    $group->get('[/]', \MesaController::class . ':TraerTodas')
+            ->add(\LoggerMW::class);            //validar que haya token
+    //baja
+    $group->delete('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\AuthMesaMW::class)           //validar que exista la mesa
+            ->add(\LoggerMW::class);            //validar que haya token
+    //modificacion
+    $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')
+            ->add(\AuthMesaMW::class)           //validar que exista la mesa
+            ->add(\AuthMesaEstadoMW::class)     //validar estados posibles
+            ->add(new AuthSectorMW("mozo"))     //validar el sector
+            ->add(\LoggerMW::class);            //validar que haya token
 });
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \ProductoController::class . ':CargarProducto')->add(\AuthSocioMW::class)->add(\LoggerMW::class);
-    $group->get('[/]', \ProductoController::class . ':TraerTodos')->add(\LoggerMW::class);
+    //alta
+    $group->post('[/]', \ProductoController::class . ':CargarProducto')
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\LoggerMW::class);            //validar que haya token
+    //show
+    $group->get('[/]', \ProductoController::class . ':TraerTodos')->add(\LoggerMW::class);            //validar que haya token
+    //modificacion
+    $group->put('/modificarProducto', \ProductoController::class . ':ModificarProductoController')
+            ->add(\AuthProductoMW::class)       //validar que exista el producto
+            ->add(\AuthSocioMW::class)          //validar que es socio
+            ->add(\LoggerMW::class);            //validar que haya token
 });
 
+//hacer lo de pedidos como se debe
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
-    $group->post('[/]', \PedidoController::class . ':CargarPedido')->add(new AuthSectorMW("mozos"))->add(\LoggerMW::class);
-    $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\LoggerMW::class);
-    $group->put('/estado', \PedidoController::class . ':ModificarEstado')->add(\pedidosEstadoMW::class)->add(\LoggerMW::class);
+    //alta
+    $group->post('[/]', \PedidoController::class . ':CargarPedido')
+            ->add(new AuthSectorMW("mozos"))    //validar el sector
+            ->add(\LoggerMW::class);            //validar que haya token
+    //show
+    $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\LoggerMW::class);            //validar que haya token
+    //modificacion (estado)
+    $group->put('/estado', \PedidoController::class . ':ModificarEstado')
+            ->add(\pedidosEstadoMW::class)      //validar estados posibles
+            ->add(\LoggerMW::class);            //validar que haya token
 });
 
 $app->run();
