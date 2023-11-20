@@ -140,7 +140,10 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
             ->add(\LoggerMW::class);                //validar que haya token
 
     //modificacion (estado2--> entregar pedido)
-    $group->put('/entregarPedidos', \PedidoController::class . ':EntregarPedidoController');
+    $group->put('/entregarPedidos', \PedidoController::class . ':EntregarPedidoController')
+            ->add(new AuthSectorMW("mozos"))        //validar el sector
+            ->add(\LoggerMW::class);                //validar que haya token
+
 });
 
 $app->run();
