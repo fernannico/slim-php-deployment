@@ -72,13 +72,17 @@ class Usuario
         return $usuarioBuscado;
     }    
 
-    public static function ObtenerUsuarioPorNamePwd($nombre, $password){
+    public static function ObtenerUsuarioPorNamePwd($nombre, $password) {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
         $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto from usuarios where nombre = :nombre AND contrasena = :contrasena AND estado = 'activo'");
         $consulta->bindParam(":nombre", $nombre);
         $consulta->bindParam(":contrasena", $password);
         $consulta->execute();
+    
         $usuario = $consulta->fetchObject();
+        if ($usuario === false) {
+            return false;
+        }
         return $usuario;
     }
     public static function obtenerTodosUsuarios()

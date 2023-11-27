@@ -14,7 +14,9 @@ class pedidosEstadoMW
         $idPedido = $parametros["idPedido"];
 
         $estado = Pedido::RetornarEstado($idPedido);
-
+        // $pedido = Pedido::obtenerPedidosPorID($idPedido);
+        // $estado = $pedido->estado;
+        // var_dump($estado);
         if ($estado == "pendiente") {
             $mensajePrevio = "Estado cambiado a 'en preparacion'";//    json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
         }elseif ($estado == "listo para servir") {

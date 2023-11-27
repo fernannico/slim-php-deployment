@@ -1,5 +1,6 @@
 <?php
 require_once './models/Pedido.php';
+require_once './models/Mesa.php';
 // require_once './interfaces/IApiUsable.php';
 
 class PedidoController extends Pedido /*implements IApiUsable*/
@@ -86,13 +87,13 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $tiempoFinalizacion = $parametros["tiempoFinalizacion"];
 
         $estado = Pedido::RetornarEstado($idPedido);
-        
-        // ver si MW con si es pedido, pasar x segundos + mje y despues de esos segudos ir al header
-        
+                
         do {
             if ($estado == "pendiente") {
                 Pedido::CambiarEstadoPedidoPorId($idPedido,$tiempoFinalizacion);
                 Pedido::actualizarTiempoFinalizacion($idPedido,$tiempoFinalizacion);    //cambiar tiempo de finalizacion
+                $pedido = Pedido::obtenerPedidoPorID($idPedido);
+                Mesa::actualizarEstado($pedido->idMesa,"con cliente esperando pedido");
                 // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
                 //este mensaje nunca va a aparecer desde el controller
             } else if($estado === "en preparacion"){
@@ -173,6 +174,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
             $id = $pedido->idPedido;
             Pedido::actualizarEstado($id,"entregado");
         }
+        Mesa::actualizarEstado($pedido->idMesa,"con cliente comiendo");
 
         $retorno = json_encode(array("mensaje" => "Pedidos con codigoAN " . $codigoAN . " entregados"));
 

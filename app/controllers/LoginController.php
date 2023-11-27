@@ -12,12 +12,12 @@ class LoginController{
         $usuario = null;
         $usuario = Usuario::ObtenerUsuarioPorNamePwd($nombre, $contrasenia);
 
-        if($usuario !== null){ 
+        if($usuario){ 
             $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector, 'puesto'=> $usuario->puesto);
             $token = AutentificadorJWT::CrearToken($datos);
             $payload = json_encode(array('jwt' => $token));
         } else {
-            $payload = json_encode(array('error: ' => 'Usuario / contraseña no coinciden'));
+            $payload = json_encode(array('error: ' => 'Usuario / contrasena no coinciden'));
         }
 
         $response->getBody()->write($payload);

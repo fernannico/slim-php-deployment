@@ -145,6 +145,18 @@ class Pedido
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
         
     }
+    
+    public static function obtenerPedidoPorID($id)
+    {
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idPedido, codigoAN, idMozo, idMesa, idProducto, tiempoFinalizacion, estado FROM pedidos WHERE idPedido = :id");
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+        
+        $productoBuscado = $consulta->fetchObject('Pedido');
+        return $productoBuscado;
+        
+    }
 }
 
 ?>
