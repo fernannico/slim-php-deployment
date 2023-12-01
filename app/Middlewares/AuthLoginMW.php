@@ -4,7 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 
-class LoggerMW
+class AuthLoginMW
 {
     /*
      * Example middleware invokable class
@@ -16,7 +16,6 @@ class LoggerMW
      */
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
-        
         try {
             $header = $request->getHeaderLine('Authorization');
             $token = '';

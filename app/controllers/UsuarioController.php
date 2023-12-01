@@ -119,9 +119,10 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $nombre = $parametros["nombre"];
         $puesto = $parametros["puesto"];
         $sector = $parametros["sector"];
+        $mail = $parametros["mail"];
         $contrasena = $parametros["contrasena"];
         // $estado = $parametros["estado"];
-        if(Usuario::ModificarUsuario($idUsuario,$nombre,$puesto,$sector,$contrasena)){
+        if(Usuario::ModificarUsuario($idUsuario,$nombre,$puesto,$sector,$mail,$contrasena)){
             $retorno = json_encode(array("mensaje" => "Usuario modificado: "));
         }else{
             $retorno = json_encode(array("mensaje" => "Usuario no modificado"));

@@ -7,8 +7,10 @@ class Pedido
     public $idMozo;
     public $idMesa;
     public $idProducto;
-    public $tiempoFinalizacion;
-    public $estado;
+    public $tiempoIniciado; //el momento en q el cocinero toma el pedido
+    public $tiempoEstimado; //el pasado por parametro
+    public $tiempoFinalizacion; //en el momento en que el cocinero finaliza el pedido
+    public $estado;         //agregar estado "borrado" a las opciones
 
     public static function generarCodigoAleatorio()
     {
@@ -27,12 +29,14 @@ class Pedido
     public function crearPedido()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, idMozo, idMesa, idProducto, tiempoFinalizacion, estado) VALUES (:codigoAN, :idMozo, :idMesa, :idProducto, :tiempoFinalizacion, :estado)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, idMozo, idMesa, idProducto, tiempoIniciado, tiempoEstimado, tiempoFinalizacion, estado) VALUES (:codigoAN, :idMozo, :idMesa, :idProducto, :tiempoIniciado, :tiempoEstimado, :tiempoFinalizacion, :estado)");
 
         $consulta->bindParam(':codigoAN', $this->codigoAN);
         $consulta->bindParam(':idMozo', $this->idMozo);
         $consulta->bindParam(':idMesa', $this->idMesa);
         $consulta->bindParam(':idProducto', $this->idProducto);
+        $consulta->bindParam(':tiempoIniciado', $this->tiempoIniciado);
+        $consulta->bindParam(':tiempoEstimado', $this->tiempoEstimado);
         $consulta->bindParam(':tiempoFinalizacion', $this->tiempoFinalizacion);
         $consulta->bindParam(':estado', $this->estado);
 
@@ -64,14 +68,33 @@ class Pedido
 
     public static function obtenerPedidosPendientesPorSector($sector)
     {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos JOIN productos ON pedidos.idProducto = productos.id WHERE productos.sector = :sector AND pedidos.estado = 'pendiente'");
-        $consulta->bindParam(":sector", $sector);
-        $consulta->execute();
-        
-        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            //code...
+            $objAccesoDatos = AccesoDatos::obtenerInstancia();
+            $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos JOIN productos ON pedidos.idProducto = productos.id WHERE productos.sector = :sector AND pedidos.estado = 'pendiente'");
+            $consulta->bindParam(":sector", $sector);
+            $consulta->execute();
+            $retorno = $consulta->fetchAll(PDO::FETCH_ASSOC);  
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }      
+        return $retorno;
     }
-
+    
+    public static function obtenerTodosPedidosPendientes()
+    {
+        try {
+            //code...
+            $objAccesoDatos = AccesoDatos::obtenerInstancia();
+            $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos JOIN productos ON pedidos.idProducto = productos.id WHERE pedidos.estado = 'pendiente'");
+            // $consulta->bindParam(":sector", $sector);
+            $consulta->execute();
+            $retorno = $consulta->fetchAll(PDO::FETCH_ASSOC);  
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }      
+        return $retorno;
+    }
     public static function RetornarEstado($id)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
@@ -97,7 +120,16 @@ class Pedido
         $consulta->bindParam(":id", $id);
         $consulta->execute();
     }
-    
+    public static function actualizarTiempoIniciadoEstimado($id,$tiempoEstimado)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $tiempoIniciado = date('Y-m-d H:i:s'); 
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET tiempoEstimado = :tiempoEstimado, tiempoIniciado = :tiempoIniciado WHERE idPedido = :id");
+        $consulta->bindParam(":tiempoEstimado", $tiempoEstimado);
+        $consulta->bindParam(":tiempoIniciado", $tiempoIniciado);
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+    }
     public static function actualizarTiempoFinalizacion($id,$tiempoFinalizacion)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
@@ -107,7 +139,7 @@ class Pedido
         $consulta->execute();
     }
 
-    public static function CambiarEstadoPedidoPorId($id,$tiempoFinalizacion)
+    public static function CambiarEstadoPedidoPorId($id)
     {
         $estado = Pedido::RetornarEstado($id);
 
@@ -115,7 +147,7 @@ class Pedido
             Pedido::actualizarEstado($id, "en preparacion");
             // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
         } elseif ($estado === "en preparacion") {
-            sleep($tiempoFinalizacion);
+            // sleep($tiempoFinalizacion);
             Pedido::actualizarEstado($id, "listo para servir");
             // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'finalizado'"));
         }
@@ -146,6 +178,42 @@ class Pedido
         
     }
     
+    public static function ObtenerPedidosListos()
+    {
+        $listaPedidos = Pedido::obtenerTodosPedidos(); // Obtener todos los pedidos
+
+        // Agrupar pedidos por codigoAN
+        $pedidosPorCodigo = [];
+        foreach ($listaPedidos as $pedido) {
+            $pedidosPorCodigo[$pedido->codigoAN][] = $pedido;
+        }
+
+        // Filtrar los codigoAN que tienen al menos un pedido que no está listo para servir
+        $codigoANListosParaServir = [];
+        foreach ($pedidosPorCodigo as $codigo => $pedidos) {
+            $todosListosParaServir = true;
+            foreach ($pedidos as $pedido) {
+                if ($pedido->estado !== "listo para servir") {
+                    $todosListosParaServir = false;
+                    break;
+                }
+            }
+            if ($todosListosParaServir) {
+                $codigoANListosParaServir[] = $codigo;
+            }
+        }
+
+        // Crear una lista de objetos con codigoAN y estado "listo para servir"
+        $pedidosListosParaServir = [];
+        foreach ($codigoANListosParaServir as $codigo) {
+            $pedido = new stdClass();
+            $pedido->codigoAN = $codigo;
+            $pedido->estado = "listo para servir"; // Puedes asignar directamente este estado si todos son "listo para servir"
+            $pedidosListosParaServir[] = $pedido;
+        }
+        
+        return $pedidosListosParaServir;
+    }
     public static function obtenerPedidoPorID($id)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();

@@ -10,6 +10,7 @@ class Usuario
     public $sector;
     public $ingresoSist;
     public $cantOperaciones;
+    public $mail;
     public $contrasena;
     public $estado;
 
@@ -26,11 +27,12 @@ class Usuario
     public function CrearUsuario()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector,contrasena) VALUES (:nombre, :puesto, :sector, :contrasena)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO usuarios (nombre, puesto, sector, mail, contrasena) VALUES (:nombre, :puesto, :sector, :mail, :contrasena)");
 
         $consulta->bindParam(':nombre', $this->nombre);
         $consulta->bindParam(':puesto', $this->puesto);
         $consulta->bindParam(':sector', $this->sector);
+        $consulta->bindParam(':mail', $this->sector);
         $consulta->bindParam(':contrasena', $this->contrasena);
 
         $consulta->execute();
@@ -72,10 +74,10 @@ class Usuario
         return $usuarioBuscado;
     }    
 
-    public static function ObtenerUsuarioPorNamePwd($nombre, $password) {
+    public static function ObtenerUsuarioPorMailPwd($mail, $password) {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
-        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto from usuarios where nombre = :nombre AND contrasena = :contrasena AND estado = 'activo'");
-        $consulta->bindParam(":nombre", $nombre);
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto from usuarios where mail = :mail AND contrasena = :contrasena");
+        $consulta->bindParam(":mail", $mail);
         $consulta->bindParam(":contrasena", $password);
         $consulta->execute();
     
@@ -143,16 +145,17 @@ class Usuario
         return $retorno;
     }
 
-    public static function ModificarUsuario($id, $nombre, $puesto, $sector, $contrasena)
+    public static function ModificarUsuario($id, $nombre, $puesto, $sector, $mail, $contrasena)
     {
         // $retorno = false;
         try {
             //code...
             $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
-            $consulta =$objetoAccesoDato->prepararConsulta("UPDATE usuarios SET nombre = :nombre, puesto = :puesto, sector = :sector, contrasena = :contrasena WHERE id = :id");
+            $consulta =$objetoAccesoDato->prepararConsulta("UPDATE usuarios SET nombre = :nombre, puesto = :puesto, sector = :sector, mail = :mail, contrasena = :contrasena WHERE id = :id");
             $consulta->bindParam(':nombre', $nombre);
             $consulta->bindParam(':puesto', $puesto);
             $consulta->bindParam(':sector', $sector);
+            $consulta->bindParam(':mail', $mail);
             $consulta->bindParam(':contrasena', $contrasena);
             $consulta->bindParam(':id', $id);
             $consulta->execute();

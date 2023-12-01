@@ -7,10 +7,10 @@ class LoginController{
     public function LoginController($request, $response, $args){
         $parametros = $request->getParsedBody();
 
-        $nombre = $parametros['nombre'];
+        $mail = $parametros['mail'];
         $contrasenia = $parametros['contrasena'];
         $usuario = null;
-        $usuario = Usuario::ObtenerUsuarioPorNamePwd($nombre, $contrasenia);
+        $usuario = Usuario::ObtenerUsuarioPorMailPwd($mail, $contrasenia);
 
         if($usuario){ 
             $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector, 'puesto'=> $usuario->puesto);

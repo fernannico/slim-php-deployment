@@ -36,7 +36,7 @@ class AuthSectorMW
             $response = $handler->handle($request);
         }else{
             $response = new Response();
-            $payload = json_encode(array('mensaje' => 'ERROR: usuario no autorizado'));
+            $payload = json_encode(array('mensaje' => 'ERROR: usuario no autorizado, tiene que ser del sector ' . $this->sector));
             $response->getBody()->write($payload);
         }
             

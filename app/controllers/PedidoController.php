@@ -68,99 +68,93 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $token = trim(explode("Bearer", $header)[1]);
     
         $data = AutentificadorJWT::ObtenerData($token);
-        // var_dump($data);
-        // echo "<br>";
-        // var_dump($data->sector);
-        // echo "<br>";
+        $sector = $data->sector;
+        
+        if($sector == "mozos"){
+            //caso mozo
+            $payload = json_encode(array("PedidosPendientes" => "El mozo no puede ver los pedidos pendientes"));
+        }elseif($sector == "socios"){
+            //caso socio
+            $listaPedidos = Pedido::obtenerTodosPedidosPendientes();
+            $payload = json_encode(array("Todos_Pedidos_Pendientes" => $listaPedidos));
+        }else{
+            $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($sector);
 
-        $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($data->sector);
-        $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
+            if($listaPedidos && !empty($listaPedidos)){
+                $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
+            }else{
+                $payload = json_encode(array("PedidosPendientes" =>"No hay pedidos"));
+            }
+        }
     
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     
-    }
-
-    public static function TomarPedidoController($request, $response, $args) {
-        $parametros = $request->getParsedBody();
-        $idPedido = $parametros["idPedido"];
-        $tiempoFinalizacion = $parametros["tiempoFinalizacion"];
-
-        $estado = Pedido::RetornarEstado($idPedido);
-                
-        do {
-            if ($estado == "pendiente") {
-                Pedido::CambiarEstadoPedidoPorId($idPedido,$tiempoFinalizacion);
-                Pedido::actualizarTiempoFinalizacion($idPedido,$tiempoFinalizacion);    //cambiar tiempo de finalizacion
-                $pedido = Pedido::obtenerPedidoPorID($idPedido);
-                Mesa::actualizarEstado($pedido->idMesa,"con cliente esperando pedido");
-                // $retorno = json_encode(array("mensaje" => "Estado cambiado a 'en preparacion'"));
-                //este mensaje nunca va a aparecer desde el controller
-            } else if($estado === "en preparacion"){
-                Pedido::CambiarEstadoPedidoPorId($idPedido,$tiempoFinalizacion);
-                $retorno = json_encode(array("mensaje" => "Estado cambiado a 'listo para servir'"));
-            } else if($estado === "listo para servir") {
-                $retorno = json_encode(array("mensaje" => "el pedido ya esta listo para servir"));
-            }
-            $estado = Pedido::RetornarEstado($idPedido);
-        }while($estado !== "listo para servir");
-
-        $response->getBody()->write($retorno);
-        return $response;
     }
 
     public static function obtenerPedidosListosParaServirController($request, $response, $args)
     {
-        $listaPedidos = Pedido::obtenerTodosPedidos(); // Obtener todos los pedidos
+        $pedidosListosParaServir = Pedido::ObtenerPedidosListos();
 
-        // Agrupar pedidos por codigoAN
-        $pedidosPorCodigo = [];
-        foreach ($listaPedidos as $pedido) {
-            $pedidosPorCodigo[$pedido->codigoAN][] = $pedido;
+        if($pedidosListosParaServir && !empty($pedidosListosParaServir)){
+            $payload = json_encode(array("listaPedido" => $pedidosListosParaServir));
+        }else{
+            $payload = json_encode(array("listaPedido" => "No hay pedidos listos para servir"));
         }
-
-        // Filtrar los codigoAN que tienen al menos un pedido que no está listo para servir
-        $codigoANListosParaServir = [];
-        foreach ($pedidosPorCodigo as $codigo => $pedidos) {
-            $todosListosParaServir = true;
-            foreach ($pedidos as $pedido) {
-                if ($pedido->estado !== "listo para servir") {
-                    $todosListosParaServir = false;
-                    break;
-                }
-            }
-            if ($todosListosParaServir) {
-                $codigoANListosParaServir[] = $codigo;
-            }
-        }
-
-        // Crear una lista de objetos con codigoAN y estado "listo para servir"
-        $pedidosListosParaServir = [];
-        foreach ($codigoANListosParaServir as $codigo) {
-            $pedido = new stdClass();
-            $pedido->codigoAN = $codigo;
-            $pedido->estado = "listo para servir"; // Puedes asignar directamente este estado si todos son "listo para servir"
-            $pedidosListosParaServir[] = $pedido;
-        }
-
-        $payload = json_encode(array("listaPedido" => $pedidosListosParaServir));
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    /*public static function EntregarPedidoController($request, $response, $args)
+
+    //estado "en preparacion"
+    public static function TomarPedidoController($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
-        $codigoAN = $parametros["codigoAN"];
+        $idPedido = $parametros["idPedido"];
+        $tiempoEstimado = $parametros["tiempoEstimado"];
+        $tiempoActual = date('Y-m-d H:i:s');
+        //el t° finalizacion lo pone el cocinero cuando termina
+        // $tiempoFinalizacion = date('Y-m-d H:i:s', strtotime($tiempoActual . " + $tiempoEstimado minutes"));
 
-        Pedido::actualizarEstado($id, "entregado");
-        Mesa::actualizarEstado($idMesa,"con cliente comiendo");
+        $pedidoAPreparar = Pedido::obtenerPedidoPorID($idPedido);
 
-        $retorno = json_encode(array("mensaje" => "pedido " .$codigoAN . " entregado"));
-
+        if($pedidoAPreparar){
+            Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
+            Pedido::CambiarEstadoPedidoPorId($pedidoAPreparar->idPedido);
+            Mesa::actualizarEstado($pedidoAPreparar->idMesa,"con cliente esperando pedido");
+            $retorno = json_encode(array("mensaje" => "pedido tomado con exito"));   
+        }else{
+            $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
+        }
         $response->getBody()->write($retorno);
         return $response;
-    }*/
+    }
+
+    
+    public static function FinalizarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idPedido = $parametros["idPedido"];
+        // $tiempoEstimado = $parametros["tiempoEstimado"];
+        $tiempoActual = date('Y-m-d H:i:s');
+        //el t° finalizacion lo pone el cocinero cuando termina
+        // $tiempoFinalizacion = date('Y-m-d H:i:s', strtotime($tiempoActual . " + $tiempoEstimado minutes"));
+
+        $pedidoAFinalizar= Pedido::obtenerPedidoPorID($idPedido);
+
+        if($pedidoAFinalizar){
+            // Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
+            Pedido::actualizarTiempoFinalizacion($pedidoAFinalizar->idPedido,$tiempoActual);                //puede ser de clase
+            Pedido::CambiarEstadoPedidoPorId($pedidoAFinalizar->idPedido);                                  //puede ser de clase
+
+            $retorno = json_encode(array("mensaje" => "pedido finalizado!"));   
+        }else{
+            $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+    }
+
     public static function EntregarPedidoController($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
