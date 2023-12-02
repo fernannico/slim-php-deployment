@@ -14,6 +14,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
 
         $idMozo = $dataToken->id;
         $idMesa = $parametros['idMesa'];
+        $nombreCliente = $parametros['nombreCliente'];
         $idProducto = $parametros['idProducto'];
         $codigoAleatorio = Pedido::generarCodigoAleatorio();
 
@@ -22,15 +23,17 @@ class PedidoController extends Pedido /*implements IApiUsable*/
 
         // si la mesa esta en estado "pidiendo", obtener el código aleatorio para la misma mesa de ese pedido
         if ($estadoMesa === 'pidiendo') {
-            $codigoAleatorio = Pedido::ObtenerCodigoANMesaPidiendo($idMesa);//lo pisa al codigoAN anterior
+            $codigoAleatorio = Pedido::ObtenerCodigoANMesa($idMesa);//lo pisa al codigoAN anterior
         }//si no esta en estado "pidiendo", el codigoAN es el nuevo creado antes
         
         // Creamos el pedido
         $usr = new Pedido();
         $usr->codigoAN = $codigoAleatorio;
         $usr->idMozo = $idMozo; 
+        $usr->nombreCliente = $nombreCliente; 
         $usr->idMesa = $idMesa;
         $usr->idProducto = $idProducto;
+        $usr->imagenMesa = "sin imagen";
         $usr->estado = "pendiente";
         $usr->crearPedido();
         Mesa::actualizarEstado($idMesa,"pidiendo");
@@ -176,6 +179,43 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response;
     }
 
+    public static function TomarFotoPedidoMesaController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idMesa = $parametros["idMesa"];                                                //verificar q existe el codigo de la mesa
+        
+        if(isset($_FILES['imagen']) && !empty($_FILES['imagen'])){
+            $nombreImagen = $_FILES['imagen']['tmp_name'];
+            $codigoAN = Pedido::ObtenerCodigoANMesa($idMesa); 
+            $pedidos = Pedido::obtenerPedidosPorCodigoAN($codigoAN);
+            if(!$pedidos){
+                $payload = json_encode(array("mensaje" => "la mesa no cuenta con un pedido asociado<BR>"));
+            }else{
+                $pedido = $pedidos[0];
+                if($pedido){
+                    $mesa = Mesa::obtenerMesaPorID($idMesa);
+                    $directorioImagenesAlta = "ImagenesDePedidos/";
+                    
+                    if($pedido->GuardarImagen($nombreImagen,$directorioImagenesAlta)){
+                        $nombre_archivo = "pedido-".$pedido->codigoAN . "_mesa-" . $pedido->idMesa . ".jpg";       
+                        $pedido->ActualizarImagenMesaPedido($codigoAN,$nombre_archivo);
+                        // var_dump($pedido); 
+                        $mesa->ActualizarImagenMesaPedido($nombre_archivo);
+                        $payload = json_encode(array("mensaje" => "foto relacionada con exito<BR>"));
+                    }else{
+                        $payload = json_encode(array("mensaje" => "no se pudo  relacionar la foto<BR>"));
+                    }                
+                }              
+            }
+        }else{
+            $payload = json_encode(array("mensaje" => "falta el parametro de la imagen<BR>"));
+        }
+
+        $response->getBody()->write($payload);
+
+        return $response->withHeader('Content-Type', 'application/json');
+
+    }
 }
 
 ?>

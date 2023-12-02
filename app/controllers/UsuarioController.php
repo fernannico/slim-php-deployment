@@ -65,14 +65,23 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $parametros = $request->getParsedBody();
         $idMesa = $parametros["idMesa"];
 
+        $mesa = Mesa::obtenerMesaPorID($idMesa);
+        if($mesa->estado != 'cerrada'){
+            if($mesa->estado == "abierta"){
+                if(Usuario::CambiarEstadoMesa($idMesa,"cerrada")){
+                    $retorno = json_encode(array("mensaje" => "mesa cerrada"));
+                }else{
+                    $retorno = json_encode(array("mensaje" => "mesa NO cerrada"));
+                }
+            }else{
+                $retorno = json_encode(array("mensaje" => "mesa NO cerrada, tiene que tener el estado 'abierta' para cerrarse y esta mesa cuenta con clientes"));
+            }
+        }else{
+            $retorno = json_encode(array("mensaje" => "la mesa ya esta cerrada"));
+        }
         // $dataToken = $request->getAttribute('datosToken');
         // var_dump($dataToken->puesto);
 
-        if(Usuario::CambiarEstadoMesa($idMesa,"cerrada")){
-            $retorno = json_encode(array("mensaje" => "mesa cerrada"));
-        }else{
-            $retorno = json_encode(array("mensaje" => "mesa NO cerrada"));
-        }
         $response->getBody()->write($retorno);
         return $response;
     }

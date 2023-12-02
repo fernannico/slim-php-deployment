@@ -28,7 +28,7 @@ class AuthLoginMW
             }
         } catch (Exception $e) {
             $response = new Response();
-            $payload = json_encode(array('mensaje' => 'ERROR: Hubo un error con el TOKEN'));
+            $payload = json_encode(array('mensaje' => 'ERROR: Hubo un error con el TOKEN (login)'));
             $response->getBody()->write($payload);
         }
         return $response->withHeader('Content-Type', 'application/json');

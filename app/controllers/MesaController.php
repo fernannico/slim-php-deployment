@@ -1,5 +1,6 @@
 <?php
 require_once './models/Mesa.php';
+require_once './models/Pedido.php';
 // require_once './interfaces/IApiUsable.php';
 
 class MesaController extends Mesa /*implements IApiUsable*/

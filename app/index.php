@@ -45,44 +45,30 @@ $app->group('/login', function (RouteCollectorProxy $group) {
 });
 
 $app->group('/usuarios', function (RouteCollectorProxy $group) {
-    //alta
     $group->post('[/]', \UsuarioController::class . ':CargarUsuario')
-        //     ->add(\AuthSocioMW::class)          //validar que es socio
             ->add(\AuthSectorPuestoMW::class)   //validar puesto con sector
             ->add(\AuthCantSocios::class);      //validar que no sean mas de 3 socios
-    //show
     $group->get('[/]', \UsuarioController::class . ':TraerTodos');            
     $group->get('/mostrarUno', \UsuarioController::class . ':TraerUno');              
-    //baja
     $group->delete('/estadoUsuario', \UsuarioController::class . ':CambiarEstadoUsuarioController')
-        //     ->add(\AuthSocioMW::class)          //validar que es socio
             ->add(\AuthUsuarioMW::class)        //validar que exista el usuario
             ->add(\AuthUsuarioEstadoMW::class); //validar estados posibles
-    //modificacion
     $group->put('/modificarUsuario', \UsuarioController::class . ':ModificarUsuarioController')
             ->add(\AuthUsuarioMW::class)        //validar que exista el usuario
             ->add(\AuthSectorPuestoMW::class)   //validar puesto con sector
-        //     ->add(\AuthSocioMW::class)          //validar que es socio
             ->add(\AuthCantSocios::class);      //validar que no sean mas de 3 socios
-    //CSV
     $group->get('/descargarEnCsv', \UsuarioController::class . ':DescargarUsuariosDesdeCsv');
-        //     ->add(\AuthSocioMW::class);         //validar que es socio
     $group->post('/cargarCsv', \UsuarioController::class . ':CargarUsuariosDesdeCsv');
-        //     ->add(\AuthSocioMW::class);         //validar que es socio
-})->add(\AuthLoginMW::class)->add(\AuthSocioMW::class);                   //validar que haya token
+})->add(\AuthLoginMW::class)->add(\AuthSocioMW::class);                   
+
 
 $app->group('/mesas', function (RouteCollectorProxy $group) {
-    //alta
     $group->post('[/]', \MesaController::class . ':CargarMesa')
             ->add(\AuthSocioMW::class);         //validar que es socio
-    //show
     $group->get('[/]', \MesaController::class . ':TraerTodas');
-
-    //baja
     $group->delete('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')
             ->add(\AuthSocioMW::class)          //validar que es socio
             ->add(\AuthMesaMW::class);          //validar que exista la mesa
-    //modificacion
     $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')
             ->add(\AuthMesaMW::class)           //validar que exista la mesa
             ->add(\AuthMesaEstadoMW::class)     //validar estados posibles
@@ -91,53 +77,36 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 
 
 $app->group('/productos', function (RouteCollectorProxy $group) {
-    //alta
     $group->post('[/]', \ProductoController::class . ':CargarProducto')
             ->add(\AuthSocioMW::class);         //validar que es socio
-
-    //show (un mozo lo podria ver)
     $group->get('[/]', \ProductoController::class . ':TraerTodos');     
-
-    //modificacion
     $group->put('/modificarProducto', \ProductoController::class . ':ModificarProductoController')
             ->add(\AuthProductoMW::class)       //validar que exista el producto
             ->add(\AuthSocioMW::class);         //validar que es socio
 })->add(\AuthLoginMW::class);                   //validar que haya token
 
 
-//hacer lo de pedidos como se debe
 $app->group('/pedidos', function (RouteCollectorProxy $group) {
-    //alta
     $group->post('/CargarPedido', \PedidoController::class . ':CargarPedido')
             ->add(\AuthMesaMW::class)               //validar que exista la mesa
             ->add(\AuthProductoMW::class)           //validar que exista el producto
             ->add(\AuthMesaAbiertaPedidoMW::class)  //validar que la mesa no este ocupada (abierta o pidiendo)
             ->add(new AuthSectorMW("mozos"));       //validar el sector
-
-    //show (un mozo lo podria ver)
-    $group->get('[/]', \PedidoController::class . ':TraerTodos');            
-    
-    // show por sector (token, todos menos mozo)
+    $group->get('[/]', \PedidoController::class . ':TraerTodos');      
+    $group->post('/relacionarFoto', \PedidoController::class . ':TomarFotoPedidoMesaController')
+            ->add(\AuthMesaMW::class)               //validar que exista la mesa
+            ->add(new AuthSectorMW("mozos"));
     $group->get('/pedidosPendientesSector', \PedidoController::class . ':TraerPedidosPendientesPorSectorController');
-
-    //estado--> tomar pedido)
     $group->put('/tomarPedido', \PedidoController::class . ':TomarPedidoController');
                                                 //validar que el pedido a tomar es de su sector
-    //     ->add(\pedidosEstadoMW::class)      //estados del pedido previo y finalizado con tiempo
-
-    //estado2--> finalizar pedido)
+    //     ->add(\pedidosEstadoMW::class)       //estados del pedido previo y finalizado con tiempo
     $group->put('/finalizarPedido', \PedidoController::class . ':FinalizarPedidoController');
-                                                    //validar que el pedido a terminar es de su sector
-
-    //show pedidos para entregar
+                                                //validar que el pedido a terminar es de su sector
     $group->get('/pedidosAEntregar', \PedidoController::class . ':obtenerPedidosListosParaServirController')
-            ->add(new AuthSectorMW("mozos"));        //validar el sector
-
-    //estado3--> entregar pedido)
+            ->add(new AuthSectorMW("mozos"));   //validar el sector
     $group->put('/entregarPedidos', \PedidoController::class . ':EntregarPedidoController')
-            ->add(new AuthSectorMW("mozos"));        //validar el sector
-
-})->add(\AuthLoginMW::class);                        //validar que haya token
+            ->add(new AuthSectorMW("mozos"));   //validar el sector
+})->add(\AuthLoginMW::class);                   //validar que haya token
 
 
 $app->run();

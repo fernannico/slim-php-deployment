@@ -4,6 +4,7 @@ class Mesa
 {
     public $id;
     public $estado;
+    public $imagen;
 
     public function crearMesa()
     {
@@ -71,4 +72,13 @@ class Mesa
         $estado = $consulta->fetchColumn();
         return $estado;
     }    
+
+    public function ActualizarImagenMesaPedido($imagen)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE mesas SET imagen = :imagen WHERE id = :id");
+        $consulta->bindParam(":imagen", $imagen);
+        $consulta->bindParam(":id", $this->id);
+        $consulta->execute();
+    }
 }

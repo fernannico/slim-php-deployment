@@ -4,13 +4,16 @@ class Pedido
 {
     public $idPedido;
     public $codigoAN;
+    public $nombreCliente;
     public $idMozo;
     public $idMesa;
     public $idProducto;
     public $tiempoIniciado; //el momento en q el cocinero toma el pedido
     public $tiempoEstimado; //el pasado por parametro
     public $tiempoFinalizacion; //en el momento en que el cocinero finaliza el pedido
+    public $imagenMesa;
     public $estado;         //agregar estado "borrado" a las opciones
+
 
     public static function generarCodigoAleatorio()
     {
@@ -29,21 +32,57 @@ class Pedido
     public function crearPedido()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, idMozo, idMesa, idProducto, tiempoIniciado, tiempoEstimado, tiempoFinalizacion, estado) VALUES (:codigoAN, :idMozo, :idMesa, :idProducto, :tiempoIniciado, :tiempoEstimado, :tiempoFinalizacion, :estado)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO pedidos (codigoAN, nombreCliente, idMozo, idMesa, idProducto, tiempoIniciado, tiempoEstimado, tiempoFinalizacion, imagenMesa, estado) VALUES (:codigoAN, :nombreCliente, :idMozo, :idMesa, :idProducto, :tiempoIniciado, :tiempoEstimado, :tiempoFinalizacion, :imagenMesa, :estado)");
 
         $consulta->bindParam(':codigoAN', $this->codigoAN);
+        $consulta->bindParam(':nombreCliente', $this->nombreCliente);
         $consulta->bindParam(':idMozo', $this->idMozo);
         $consulta->bindParam(':idMesa', $this->idMesa);
         $consulta->bindParam(':idProducto', $this->idProducto);
         $consulta->bindParam(':tiempoIniciado', $this->tiempoIniciado);
         $consulta->bindParam(':tiempoEstimado', $this->tiempoEstimado);
         $consulta->bindParam(':tiempoFinalizacion', $this->tiempoFinalizacion);
+        $consulta->bindParam(':imagenMesa', $this->imagenMesa);
         $consulta->bindParam(':estado', $this->estado);
 
         $consulta->execute();
 
         return $objAccesoDatos->obtenerUltimoId();
     }
+
+    public function GuardarImagen($nombreImagen,$directorioDestino) {
+        $retorno = false;
+        $carpeta_archivos = $directorioDestino;
+
+        $nombre_archivo = "pedido-".$this->codigoAN . "_mesa-" . $this->idMesa . ".jpg";       
+        $ruta_destino = $carpeta_archivos . $nombre_archivo;
+
+        if (move_uploaded_file($nombreImagen,  $ruta_destino)){
+            $retorno = true;
+        }     
+        return $retorno;
+    }
+
+    public static function MoverImagen($nombreImagen,$carpetaOrigen,$directorioDestino)           //si se borra el pedido o si se paga
+    {
+        $retorno = false;
+
+        $rutaOrigen = $carpetaOrigen . $nombreImagen;
+        $rutaDestino = $directorioDestino . $nombreImagen;
+
+        if (file_exists($rutaOrigen)) {
+            try {
+                if (rename($rutaOrigen, $rutaDestino)) {
+                    $retorno = true;
+                }
+            } finally {
+                $retorno = false;
+            }
+        }
+    
+        return $retorno;
+    }
+
     /*
     public static function obtenerPedidoPorID($id)
     {
@@ -154,7 +193,7 @@ class Pedido
         // return $retorno;
         //no tiene sentido poner los mensajes aca porque solo salen los mensajes del controller
     }
-    public static function ObtenerCodigoANMesaPidiendo($idMesa)
+    public static function ObtenerCodigoANMesa($idMesa)
     {
         $codigoAN = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
@@ -217,14 +256,23 @@ class Pedido
     public static function obtenerPedidoPorID($id)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT idPedido, codigoAN, idMozo, idMesa, idProducto, tiempoFinalizacion, estado FROM pedidos WHERE idPedido = :id");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT idPedido, codigoAN, nombreCliente, idMozo, idMesa, idProducto, tiempoFinalizacion, imagenMesa, estado FROM pedidos WHERE idPedido = :id");
         $consulta->bindParam(":id", $id);
         $consulta->execute();
         
         $productoBuscado = $consulta->fetchObject('Pedido');
-        return $productoBuscado;
-        
+        return $productoBuscado;   
     }
+    
+    public static function ActualizarImagenMesaPedido($codigoAN,$imagenMesa)
+    {
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET imagenMesa = :imagenMesa WHERE codigoAN = :codigoAN");
+        $consulta->bindParam(":imagenMesa", $imagenMesa);
+        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta->execute();
+    }
+
 }
 
 ?>
