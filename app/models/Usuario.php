@@ -32,7 +32,7 @@ class Usuario
         $consulta->bindParam(':nombre', $this->nombre);
         $consulta->bindParam(':puesto', $this->puesto);
         $consulta->bindParam(':sector', $this->sector);
-        $consulta->bindParam(':mail', $this->sector);
+        $consulta->bindParam(':mail', $this->mail);
         $consulta->bindParam(':contrasena', $this->contrasena);
 
         $consulta->execute();

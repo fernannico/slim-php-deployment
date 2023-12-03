@@ -95,6 +95,36 @@ class PedidoController extends Pedido /*implements IApiUsable*/
     
     }
 
+    //estado "en preparacion"
+    public static function TomarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idPedido = $parametros["idPedido"];
+        $tiempoEstimado = $parametros["tiempoEstimado"];
+        $tiempoEstimado = gmdate("H:i:s", $tiempoEstimado * 60); // Convertir minutos a formato H:i:s
+        
+        // $tiempoActual = date('Y-m-d H:i:s');
+        //el t° finalizacion lo pone el cocinero cuando termina
+        // $tiempoFinalizacion = date('Y-m-d H:i:s', strtotime($tiempoActual . " + $tiempoEstimado minutes"));
+
+        $pedidoAPreparar = Pedido::obtenerPedidoPorID($idPedido);
+
+        if($pedidoAPreparar){
+            if($pedidoAPreparar->estado == "pendiente"){
+                Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
+                Pedido::CambiarEstadoPedidoPorId($pedidoAPreparar->idPedido);
+                Mesa::actualizarEstado($pedidoAPreparar->idMesa,"con cliente esperando pedido");
+                $retorno = json_encode(array("mensaje" => "pedido tomado con exito"));   
+            }else{
+                $retorno = json_encode(array("mensaje" => "pedido no tomado porque tiene estado " . $pedidoAPreparar->estado));   
+            }
+        }else{
+            $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+    }
+
     public static function obtenerPedidosListosParaServirController($request, $response, $args)
     {
         $pedidosListosParaServir = Pedido::ObtenerPedidosListos();
@@ -108,32 +138,6 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-
-    //estado "en preparacion"
-    public static function TomarPedidoController($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-        $idPedido = $parametros["idPedido"];
-        $tiempoEstimado = $parametros["tiempoEstimado"];
-        $tiempoActual = date('Y-m-d H:i:s');
-        //el t° finalizacion lo pone el cocinero cuando termina
-        // $tiempoFinalizacion = date('Y-m-d H:i:s', strtotime($tiempoActual . " + $tiempoEstimado minutes"));
-
-        $pedidoAPreparar = Pedido::obtenerPedidoPorID($idPedido);
-
-        if($pedidoAPreparar){
-            Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
-            Pedido::CambiarEstadoPedidoPorId($pedidoAPreparar->idPedido);
-            Mesa::actualizarEstado($pedidoAPreparar->idMesa,"con cliente esperando pedido");
-            $retorno = json_encode(array("mensaje" => "pedido tomado con exito"));   
-        }else{
-            $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
-        }
-        $response->getBody()->write($retorno);
-        return $response;
-    }
-
-    
     public static function FinalizarPedidoController($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
@@ -146,11 +150,15 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $pedidoAFinalizar= Pedido::obtenerPedidoPorID($idPedido);
 
         if($pedidoAFinalizar){
-            // Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
-            Pedido::actualizarTiempoFinalizacion($pedidoAFinalizar->idPedido,$tiempoActual);                //puede ser de clase
-            Pedido::CambiarEstadoPedidoPorId($pedidoAFinalizar->idPedido);                                  //puede ser de clase
-
-            $retorno = json_encode(array("mensaje" => "pedido finalizado!"));   
+            if($pedidoAFinalizar->estado == "en preparacion"){
+                // Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
+                Pedido::actualizarTiempoFinalizacion($pedidoAFinalizar->idPedido,$tiempoActual);                //puede ser de clase
+                Pedido::CambiarEstadoPedidoPorId($pedidoAFinalizar->idPedido);                                  //puede ser de clase
+    
+                $retorno = json_encode(array("mensaje" => "pedido finalizado!"));   
+            }else{
+                $retorno = json_encode(array("mensaje" => "pedido no finalizado porque tiene estado: " . $pedidoAFinalizar->estado));   
+            }
         }else{
             $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
         }

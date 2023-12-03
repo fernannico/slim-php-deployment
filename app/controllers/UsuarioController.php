@@ -13,6 +13,7 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $nombre = $parametros['nombre'];
         $puesto = $parametros['puesto'];
         $sector = $parametros['sector'];
+        $mail = $parametros['mail'];
         $contrasena = $parametros['contrasena'];
 
         // Creamos el usuario
@@ -20,10 +21,11 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $usr->nombre = $nombre;
         $usr->puesto = $puesto;
         $usr->sector = $sector;
+        $usr->mail = $mail;
         $usr->contrasena = $contrasena;
         $usr->crearUsuario();
 
-        $payload = json_encode(array("mensaje" => "Usuario creado con exito"));
+        $payload = json_encode(array("mensaje" => "Usuario creado con exito" . $usr->mail));
 
         $response->getBody()->write($payload);
 

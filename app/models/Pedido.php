@@ -83,18 +83,17 @@ class Pedido
         return $retorno;
     }
 
-    /*
     public static function obtenerPedidoPorID($id)
     {
+        //idPedido, codigoAN, nombreCliente, idMozo, idMesa, idProducto, tiempoFinalizacion, imagenMesa, estado
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE id = $id");
-        // $consulta->bindValue(1, $id, PDO::PARAM_INT);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos WHERE idPedido = :id");
+        $consulta->bindParam(":id", $id);
         $consulta->execute();
         
-        $pedidoBuscado = $consulta->fetchObject('Pedido');
-        return $pedidoBuscado;
+        $productoBuscado = $consulta->fetchObject('Pedido');
+        return $productoBuscado;   
     }
-    */
 
     public static function obtenerTodosPedidos()
     {
@@ -252,16 +251,6 @@ class Pedido
         }
         
         return $pedidosListosParaServir;
-    }
-    public static function obtenerPedidoPorID($id)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT idPedido, codigoAN, nombreCliente, idMozo, idMesa, idProducto, tiempoFinalizacion, imagenMesa, estado FROM pedidos WHERE idPedido = :id");
-        $consulta->bindParam(":id", $id);
-        $consulta->execute();
-        
-        $productoBuscado = $consulta->fetchObject('Pedido');
-        return $productoBuscado;   
     }
     
     public static function ActualizarImagenMesaPedido($codigoAN,$imagenMesa)

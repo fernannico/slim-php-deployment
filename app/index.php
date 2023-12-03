@@ -8,6 +8,7 @@ require_once './controllers/MesaController.php';
 require_once './controllers/PedidoController.php';
 require_once './controllers/ProductoController.php';
 require_once './controllers/UsuarioController.php';
+require_once './controllers/ClienteController.php';
 require_once './db/AccesoDatos.php';
 require_once './JWT/AuthJWT.php';
 require_once './Middlewares/AuthCantSocios.php';
@@ -65,7 +66,8 @@ $app->group('/usuarios', function (RouteCollectorProxy $group) {
 $app->group('/mesas', function (RouteCollectorProxy $group) {
     $group->post('[/]', \MesaController::class . ':CargarMesa')
             ->add(\AuthSocioMW::class);         //validar que es socio
-    $group->get('[/]', \MesaController::class . ':TraerTodas');
+    $group->get('[/]', \MesaController::class . ':TraerTodas')
+            ->add(\AuthSocioMW::class);
     $group->delete('/cerrarMesa', \UsuarioController::class . ':CerrarMesaController')
             ->add(\AuthSocioMW::class)          //validar que es socio
             ->add(\AuthMesaMW::class);          //validar que exista la mesa
@@ -92,22 +94,33 @@ $app->group('/pedidos', function (RouteCollectorProxy $group) {
             ->add(\AuthProductoMW::class)           //validar que exista el producto
             ->add(\AuthMesaAbiertaPedidoMW::class)  //validar que la mesa no este ocupada (abierta o pidiendo)
             ->add(new AuthSectorMW("mozos"));       //validar el sector
-    $group->get('[/]', \PedidoController::class . ':TraerTodos');      
+
+    $group->get('[/]', \PedidoController::class . ':TraerTodos')->add(\AuthSocioMW::class);      
+
     $group->post('/relacionarFoto', \PedidoController::class . ':TomarFotoPedidoMesaController')
             ->add(\AuthMesaMW::class)               //validar que exista la mesa
             ->add(new AuthSectorMW("mozos"));
+
     $group->get('/pedidosPendientesSector', \PedidoController::class . ':TraerPedidosPendientesPorSectorController');
+
     $group->put('/tomarPedido', \PedidoController::class . ':TomarPedidoController');
                                                 //validar que el pedido a tomar es de su sector
     //     ->add(\pedidosEstadoMW::class)       //estados del pedido previo y finalizado con tiempo
+
     $group->put('/finalizarPedido', \PedidoController::class . ':FinalizarPedidoController');
                                                 //validar que el pedido a terminar es de su sector
+
     $group->get('/pedidosAEntregar', \PedidoController::class . ':obtenerPedidosListosParaServirController')
             ->add(new AuthSectorMW("mozos"));   //validar el sector
+
     $group->put('/entregarPedidos', \PedidoController::class . ':EntregarPedidoController')
             ->add(new AuthSectorMW("mozos"));   //validar el sector
 })->add(\AuthLoginMW::class);                   //validar que haya token
 
+$app->group('/clientes', function (RouteCollectorProxy $group) {
+    //Las mesas tienen un código de identificación único (de 5 caracteres) , el cliente al entrar en nuestra aplicación puede ingresar ese código junto con el número del pedido y se le mostrará el tiempo restante para su pedido.
+    $group->get('/demoraPedido', \ClienteController::class . ':ObtenerTiempoRestantePedidoController');      
 
+});
 $app->run();
 ?>
