@@ -30,8 +30,7 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         $response->getBody()->write($payload);
 
         return $response->withHeader('Content-Type', 'application/json');
-    }
-    
+    }    
     
     public function TraerUno($request, $response, $args)
     {
@@ -60,6 +59,25 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function ModificarUsuarioController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idUsuario = $parametros["idUsuario"];
+        $nombre = $parametros["nombre"];
+        $puesto = $parametros["puesto"];
+        $sector = $parametros["sector"];
+        $mail = $parametros["mail"];
+        $contrasena = $parametros["contrasena"];
+        // $estado = $parametros["estado"];
+        if(Usuario::ModificarUsuario($idUsuario,$nombre,$puesto,$sector,$mail,$contrasena)){
+            $retorno = json_encode(array("mensaje" => "Usuario modificado: "));
+        }else{
+            $retorno = json_encode(array("mensaje" => "Usuario no modificado"));
+        }
+        $response->getBody()->write($retorno);
+        return $response;
     }
 
     public function CerrarMesaController(Request $request, Response $response, $args)
@@ -96,12 +114,52 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
 
         // $dataToken = $request->getAttribute('datosToken');
         // var_dump($dataToken->puesto);
+        $continuar = true;
+        $mesa = Mesa::obtenerMesaPorID($idMesa);
+        if($estado === "con cliente pagando" && $mesa->estado !== "con cliente comiendo")
+        {
+            // var_dump($estado);
+            // var_dump($mesa->estado);
 
-        if(Usuario::CambiarEstadoMesa($idMesa, $estado)){
-            $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
-        }else{
-            $retorno = json_encode(array("mensaje" => "estado no cambiado"));
+            $continuar = false;
+            $retorno = json_encode(array("mensaje" => "estado no cambiado, La mesa no cuenta con los clientes comiendo"));
         }
+
+        if($continuar){
+            if(Usuario::CambiarEstadoMesa($idMesa, $estado)){
+                $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
+            }else{
+                $retorno = json_encode(array("mensaje" => "estado no cambiado"));
+            }
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+    }
+
+    public static function CobrarCuentaController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $codigoAN = $parametros["codigoAN"];
+
+        //que el pedido tenga estado entregado y modificarlo a cobrado
+        //que la mesa tenga estado con cliente pagando
+        $pedidos = Pedido::obtenerPedidosPorCodigoAN($codigoAN);
+        $pedido = $pedidos[0];
+        $mesa = Mesa::obtenerMesaPorID($pedido->idMesa);
+
+        if($mesa->estado == "con cliente pagando" && $pedido->estado == "entregado")
+        {
+            foreach($pedidos as $pedidoInd)
+            {
+                Pedido::actualizarEstado($pedidoInd->idPedido,"cobrado");
+            }
+            Mesa::actualizarEstado($mesa->id,"abierta");
+            $monto = Pedido::ObtenerMontoTotalPedido($codigoAN);
+            $retorno = json_encode(array("mensaje" => "Pedidos con codigoAN " . $codigoAN . " cobrados. Monto total: $" .$monto));
+        }else{
+            $retorno = json_encode(array("error" => "el pedido tuvo que ser entregado y los clientes haber pedido la cuenta"));
+        }
+
         $response->getBody()->write($retorno);
         return $response;
     }
@@ -119,28 +177,6 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
         }
         $response->getBody()->write($retorno);
         return $response;
-
-
-    }
-
-    public function ModificarUsuarioController($request, $response, $args)
-    {
-        $parametros = $request->getParsedBody();
-        $idUsuario = $parametros["idUsuario"];
-        $nombre = $parametros["nombre"];
-        $puesto = $parametros["puesto"];
-        $sector = $parametros["sector"];
-        $mail = $parametros["mail"];
-        $contrasena = $parametros["contrasena"];
-        // $estado = $parametros["estado"];
-        if(Usuario::ModificarUsuario($idUsuario,$nombre,$puesto,$sector,$mail,$contrasena)){
-            $retorno = json_encode(array("mensaje" => "Usuario modificado: "));
-        }else{
-            $retorno = json_encode(array("mensaje" => "Usuario no modificado"));
-        }
-        $response->getBody()->write($retorno);
-        return $response;
-
     }
 
     public function CargarUsuariosDesdeCsv($request,$response, $args)

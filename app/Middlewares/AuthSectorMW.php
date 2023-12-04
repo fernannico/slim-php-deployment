@@ -17,19 +17,6 @@ class AuthSectorMW
         $token = trim(explode("Bearer", $header)[1]);
 
         $data = AutentificadorJWT::ObtenerData($token);
-        // var_dump($data);
-        // echo "<br>";
-        // var_dump($data->sector);
-        // echo "<br>";
-        // var_dump($this->sector);
-        
-        // if($data->sector === $this->sector){
-        //     echo "<br>";
-        //     echo "son lo mismo";
-        // }else{
-        //     echo "<br>";
-        //     echo "no son lo mismo";
-        // }
 
         if($data->sector === $this->sector || $data->sector === 'socios'){
             $request = $request->withAttribute('datosToken', $data);//retorna en el request la data del token
@@ -41,6 +28,5 @@ class AuthSectorMW
         }
             
         return $response->withHeader('Content-Type', 'application/json');
-    
     }
 }

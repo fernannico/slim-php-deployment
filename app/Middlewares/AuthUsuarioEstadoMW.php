@@ -20,9 +20,9 @@ class AuthUsuarioEstadoMW
         }else{
             $response = new Response();
             $payload = json_encode(array('mensaje' => 'estado no identificado<BR>Estados permitidos: 
-                <br> - suspendido,
-                <br> - despedido,
-                <br> - activo'));
+                - suspendido,
+                - despedido,
+                - activo'));
             $response->getBody()->write($payload);
         }
 

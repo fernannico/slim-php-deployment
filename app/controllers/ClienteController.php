@@ -60,4 +60,31 @@ class ClienteController
         return $response;
     }
 
+    public static function FinalizarComiendoYPagarController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        $idMesa = $parametros["idMesa"];
+
+        $mesa= Mesa::obtenerMesaPorID($idMesa);
+
+        if($mesa){
+            if($mesa->estado == "con cliente pagando"){
+                $retorno = json_encode(array("mensaje" => "ya se indico que los clientes quieren pagar"));   
+            }else{
+                if($mesa->estado !== "con cliente comiendo")
+                {
+                    $retorno = json_encode(array("error" => "La mesa no cuenta con los clientes comiendo"));   
+                }else{
+                    if(Mesa::actualizarEstado($mesa->id,"con cliente pagando")){
+                        $retorno = json_encode(array("mensaje" => "el cliente indico que quiere pagar!"));   
+                    }                
+                }
+            }
+        }else{
+            $retorno = json_encode(array("error" => "la mesa no existe"));   
+        }
+        $response->getBody()->write($retorno);
+        return $response;
+    }
+
 }

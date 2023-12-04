@@ -19,13 +19,7 @@ class AuthMesaEstadoMW
             $response = $handler->handle($request);
         }else{
             $response = new Response();
-            $payload = json_encode(array('mensaje' => 'estado no identificado
-            <BR>Estados permitidos: 
-            <br> - abierta,
-            <br> - pidiendo,
-            <br> - con cliente esperando pedido,
-            <br> - con cliente comiendo,
-            <br> - con cliente pagando'));
+            $payload = json_encode(array('mensaje' => 'estado no identificado, Estados permitidos:  - abierta, - pidiendo, - con cliente esperando pedido, - con cliente comiendo, - con cliente pagando'));
             $response->getBody()->write($payload);
         }
 

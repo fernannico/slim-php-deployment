@@ -133,6 +133,21 @@ class Pedido
         }      
         return $retorno;
     }
+    public static function obtenerTodosPedidosEnPreparacion()
+    {
+        try {
+            //code...
+            $objAccesoDatos = AccesoDatos::obtenerInstancia();
+            $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos JOIN productos ON pedidos.idProducto = productos.id WHERE pedidos.estado = 'en preparacion'");
+            // $consulta->bindParam(":sector", $sector);
+            $consulta->execute();
+            $retorno = $consulta->fetchAll(PDO::FETCH_ASSOC);  
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }      
+        return $retorno;
+    }
+
     public static function RetornarEstado($id)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
@@ -253,6 +268,7 @@ class Pedido
         return $pedidosListosParaServir;
     }
     
+    //baja pedido
     public static function ActualizarImagenMesaPedido($codigoAN,$imagenMesa)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
@@ -260,6 +276,20 @@ class Pedido
         $consulta->bindParam(":imagenMesa", $imagenMesa);
         $consulta->bindParam(":codigoAN", $codigoAN);
         $consulta->execute();
+    }
+
+    public static function ObtenerMontoTotalPedido($codigoAN)
+    {
+        $monto = 0;
+        $pedidos = Pedido::obtenerPedidosPorCodigoAN($codigoAN);
+
+        foreach($pedidos as $pedido)
+        {
+            $producto = Producto::ObtenerProductoPorID($pedido->idProducto);
+            $monto += $producto->precio;
+        }
+
+        return $monto;
     }
 
 }

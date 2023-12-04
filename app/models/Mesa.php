@@ -81,4 +81,19 @@ class Mesa
         $consulta->bindParam(":id", $this->id);
         $consulta->execute();
     }
+
+    public static function ObtenerMesasMasUsadas()
+    {
+        $mesas = array();
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
+
+        $consulta = $objetoAccesoDato->prepararConsulta('SELECT * FROM mesas WHERE id IN (SELECT idMesa FROM pedidos GROUP BY idMesa HAVING COUNT(*) = (SELECT COUNT(*) as max_count FROM pedidos GROUP BY idMesa ORDER BY COUNT(*) DESC LIMIT 1))');
+
+        $consulta->execute();
+        $mesas = $consulta->fetchAll(PDO::FETCH_CLASS, 'Mesa'); // Obtener todas las mesas como objetos
+
+        return $mesas; 
+    }
+
 }
+

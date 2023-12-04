@@ -45,4 +45,18 @@ class MesaController extends Mesa /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    public function MesaMasUsadaController($request, $response, $args)
+    {
+        $mesas = Mesa::ObtenerMesasMasUsadas();
+
+        if (!$mesas) {
+            $payload = json_encode(array("mensaje" => "No se encontró ninguna mesa"));
+        } else {
+            $payload = json_encode(['Mesas_Mas_Usadas' => $mesas]);
+        }
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
 }

@@ -6,25 +6,25 @@ use Slim\Psr7\Response;
 require_once './models/Usuario.php';
 require_once './models/Mesa.php';
 
-class AuthMesaMW
+class AuthPedidoCodAN
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
     {   
         $parametros = $request->getParsedBody();
         if($parametros != null){
-            $idMesa = $parametros["idMesa"];
+            $codigoAN = $parametros["codigoAN"];
         }else{
             $queryParams = $request->getQueryParams();
-            $idMesa = $queryParams["idMesa"];
+            $codigoAN = $queryParams["codigoAN"];
         }
 
         // var_dump($idMesa);
 
-        if(Mesa::obtenerMesaPorID($idMesa) !== false){
+        if(!empty(Pedido::obtenerPedidosPorCodigoAN($codigoAN))){
             return $handler->handle($request);
         }else{
             $response = new Response();
-            $response->getBody()->write(json_encode(["mensaje" => "Mesa no encontrada"]));
+            $response->getBody()->write(json_encode(["mensaje" => "No se encontro el pedido con dicho codigoAN"]));
         }
 
         return $response->withHeader('Content-Type', 'application/json');

@@ -1,5 +1,6 @@
 <?php
 require_once './models/Pedido.php';
+require_once './models/Producto.php';
 require_once './models/Mesa.php';
 // require_once './interfaces/IApiUsable.php';
 
@@ -13,6 +14,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         // var_dump($dataToken);
 
         $idMozo = $dataToken->id;
+        var_dump($idMozo);
         $idMesa = $parametros['idMesa'];
         $nombreCliente = $parametros['nombreCliente'];
         $idProducto = $parametros['idProducto'];
@@ -33,6 +35,9 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $usr->nombreCliente = $nombreCliente; 
         $usr->idMesa = $idMesa;
         $usr->idProducto = $idProducto;
+        $usr->tiempoIniciado = "0000-00-00 00:00:00";
+        $usr->tiempoEstimado = "00:00:00";
+        $usr->tiempoFinalizacion = "0000-00-00 00:00:00";
         $usr->imagenMesa = "sin imagen";
         $usr->estado = "pendiente";
         $usr->crearPedido();
@@ -79,20 +84,67 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         }elseif($sector == "socios"){
             //caso socio
             $listaPedidos = Pedido::obtenerTodosPedidosPendientes();
-            $payload = json_encode(array("Todos_Pedidos_Pendientes" => $listaPedidos));
+            
+            if($listaPedidos && !empty($listaPedidos)){
+                $payload = json_encode(array("Todos_Pedidos_Pendientes" => $listaPedidos));
+            }else{
+                $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
+            }
         }else{
             $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($sector);
 
             if($listaPedidos && !empty($listaPedidos)){
                 $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
             }else{
-                $payload = json_encode(array("PedidosPendientes" =>"No hay pedidos"));
+                $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
             }
         }
     
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public static function TraerPedidosEnPreparacionPorSectorController($request, $response, $args)
+    {
+        $header = $request->getHeaderLine('Authorization');
+        $token = trim(explode("Bearer", $header)[1]);
     
+        $data = AutentificadorJWT::ObtenerData($token);
+        $sector = $data->sector;
+        $listaPedidos = Pedido::obtenerTodosPedidosEnPreparacion();
+        
+        if($sector == "mozos"){
+            //caso mozo
+            $payload = json_encode(array("PedidosEnPreparacion" => "El mozo no puede ver los pedidos En Preparacion"));
+        }elseif($sector == "socios"){
+            //caso socio
+            
+            if($listaPedidos && !empty($listaPedidos)){
+                $payload = json_encode(array("Todos_Pedidos_EnPreparacion" => $listaPedidos));
+            }else{
+                $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
+            }
+        }else{
+            //por sector
+            // $listaPedidos = Pedido::obtenerPedidosEnPreparacionPorSector($sector);
+            $pedidosPorSector = Array();
+            foreach($listaPedidos as $pedido)
+            {
+                $producto = Producto::ObtenerProductoPorID($pedido->idProducto);
+                if($producto->sector == $sector){
+                    $pedidosPorSector[] = $pedido;
+                }
+            }
+
+            if($pedidosPorSector && !empty($pedidosPorSector)){
+                $payload = json_encode(array("PedidosEnPreparacion" => $pedidosPorSector));
+            }else{
+                $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
+            }
+        }
+    
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
     }
 
     //estado "en preparacion"
@@ -102,7 +154,7 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $idPedido = $parametros["idPedido"];
         $tiempoEstimado = $parametros["tiempoEstimado"];
         $tiempoEstimado = gmdate("H:i:s", $tiempoEstimado * 60); // Convertir minutos a formato H:i:s
-        
+
         // $tiempoActual = date('Y-m-d H:i:s');
         //el t° finalizacion lo pone el cocinero cuando termina
         // $tiempoFinalizacion = date('Y-m-d H:i:s', strtotime($tiempoActual . " + $tiempoEstimado minutes"));
