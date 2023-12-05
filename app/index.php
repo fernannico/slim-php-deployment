@@ -88,6 +88,7 @@ $app->group('/mesas', function (RouteCollectorProxy $group) {
 
     $group->put('/estadoMesa', \UsuarioController::class . ':CambiarEstadoMesaController')
             ->add(\AuthMesaEstadoMW::class)     //validar estados posibles
+            ->add(\LoggerMW::class)
             ->add(new AuthSectorMW("mozos"));   //validar el sector + socio
 })->add(\AuthLoginMW::class);                   //validar que haya token
 

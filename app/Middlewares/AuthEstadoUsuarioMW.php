@@ -29,7 +29,7 @@ class AuthEstadoUsuarioMW
                     $response = $handler->handle($request);
                 }else{
                     $response = new Response();
-                    $payload = json_encode(array('ERROR:' => 'el socio logeado esta con estado ' . $datos->estado));    
+                    $payload = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $datos->estado));    
                     $response->getBody()->write($payload);
                 }
             }else{
