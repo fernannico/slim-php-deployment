@@ -14,7 +14,7 @@ class AuthMailMW
             $mail = $parametros['mail'];
     
             if ($this->existeMail($mail)) {
-                $response->getBody()->write(json_encode(["error" => "el correo electrónico ya esta registrado"]));
+                $response->getBody()->write(json_encode(["error" => "el correo electronico ya esta registrado"]));
             }else{
                 $response = $handler->handle($request);
             }

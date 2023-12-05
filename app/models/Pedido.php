@@ -50,6 +50,25 @@ class Pedido
         return $objAccesoDatos->obtenerUltimoId();
     }
 
+    public static function ModificarPedido($idPedido,$idProducto,$nombreCliente)
+    {
+        // $retorno = false;
+        try {
+            //code...
+            $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
+            $consulta =$objetoAccesoDato->prepararConsulta("UPDATE pedidos SET idProducto = :idProducto, nombreCliente = :nombreCliente WHERE idPedido = :idPedido");
+            $consulta->bindParam(':idProducto', $idProducto);
+            $consulta->bindParam(':nombreCliente', $nombreCliente);
+            $consulta->bindParam(':idPedido', $idPedido);
+            $consulta->execute();
+            $retorno = true;
+        } catch (\Throwable $th) {
+            $retorno = false;
+        }
+        
+        return $retorno;
+    }
+
     public function GuardarImagen($nombreImagen,$directorioDestino) {
         $retorno = false;
         $carpeta_archivos = $directorioDestino;
@@ -63,7 +82,7 @@ class Pedido
         return $retorno;
     }
 
-    public static function MoverImagen($nombreImagen,$carpetaOrigen,$directorioDestino)           //si se borra el pedido o si se paga
+    public static function MoverImagen($nombreImagen,$carpetaOrigen,$directorioDestino)           //si el pedido se paga
     {
         $retorno = false;
 
@@ -98,7 +117,7 @@ class Pedido
     public static function obtenerTodosPedidos()
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM pedidos ORDER BY `idPedido` DESC");
         $consulta->execute();
         
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Pedido');
@@ -165,6 +184,16 @@ class Pedido
         }
     }
 
+    public static function BorrarCodigoANPorId($id)
+    {
+        $codigoAN = '-';
+        $objetoAccesoDato = AccesoDatos::obtenerInstancia();
+        $consulta = $objetoAccesoDato->prepararConsulta("UPDATE pedidos SET codigoAN = :codigoAN WHERE idPedido = :id");
+        $consulta->bindParam(":codigoAN", $codigoAN);
+        $consulta->bindParam(":id", $id);
+        $consulta->execute();
+    }
+
     public static function actualizarEstado($id, $estado)
     {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia();
@@ -211,7 +240,7 @@ class Pedido
     {
         $codigoAN = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT codigoAN FROM pedidos WHERE idMesa = :idMesa AND estado != 'cobrado' AND estado != 'entregado'");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT codigoAN FROM pedidos WHERE idMesa = :idMesa AND estado != 'cobrado' AND estado != 'entregado' AND estado != 'cancelado'");
         $consulta->bindParam(":idMesa", $idMesa);
         $consulta->execute();
         

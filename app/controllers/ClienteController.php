@@ -1,7 +1,6 @@
 <?php
 require_once './models/Pedido.php';
 require_once './models/Mesa.php';
-// require_once './interfaces/IApiUsable.php';
 
 use Illuminate\Support\Facades\Date;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -82,13 +81,13 @@ class ClienteController
                 if($mesa->estado == "con cliente pagando"){
                     $retorno = json_encode(array("mensaje" => "ya se indico que los clientes quieren pagar"));   
                 }else{
-                    if($mesa->estado !== "con cliente comiendo")
+                    if($mesa->estado === "con cliente comiendo")
                     {
-                        $retorno = json_encode(array("error" => "La mesa no cuenta con los clientes comiendo"));   
-                    }else{
                         if(Mesa::actualizarEstado($mesa->id,"con cliente pagando")){
                             $retorno = json_encode(array("mensaje" => "el cliente indico que quiere pagar!"));   
                         }                
+                    }else{
+                        $retorno = json_encode(array("error" => "La mesa no cuenta con los clientes comiendo"));   
                     }
                 }
             }else{

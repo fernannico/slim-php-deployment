@@ -26,20 +26,21 @@ class AuthSectorPuestoMW
                         $response = $handler->handle($request);
                     } else {
                         $payload = json_encode(array("error" => " La combinacion de puesto y sector no es valida, lo correcto es: mozo -> mozos | socio -> socios | bartender -> barra | cervecero -> choperas | cocinero -> cocina o candy bar"));
-                        // $response->getBody()->write($payload);
+                        $response->getBody()->write($payload);
                     }   
                 }else{
                     $payload = json_encode(array('mensaje' => 'Sector no identificado. Sectores permitidosss:  barra, choperas, cocina, candy bar, mozos, socios'));
-                    // $response->getBody()->write($payload);
+                    $response->getBody()->write($payload);
                 }
             }else{
                 $payload = json_encode(array("errror" => "Puesto no valido. Los puestos disponibles son: mozo, cocinero, bartender, socio, cervecero"));
-                // $response->getBody()->write($payload);
+                $response->getBody()->write($payload);
             }
         }else{
             $payload = json_encode(array("errror" => "faltan parametros para crear el usuario"));
+            $response->getBody()->write($payload);
         }
-        $response->getBody()->write($payload);
+        // $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
 

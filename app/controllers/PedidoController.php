@@ -2,9 +2,8 @@
 require_once './models/Pedido.php';
 require_once './models/Producto.php';
 require_once './models/Mesa.php';
-// require_once './interfaces/IApiUsable.php';
 
-class PedidoController extends Pedido /*implements IApiUsable*/
+class PedidoController extends Pedido
 {
     public function CargarPedido($request, $response, $args)
     {
@@ -72,6 +71,67 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         return $response->withHeader('Content-Type', 'application/json');
     } 
 
+    
+    public function ModificarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        if(isset($parametros['idPedido']) && !empty($parametros['idPedido']) && isset($parametros['idProducto']) && !empty($parametros['idProducto']) && isset($parametros['nombreCliente']) && !empty($parametros['nombreCliente'])){
+            $idPedido = $parametros["idPedido"];
+            $idProducto = $parametros["idProducto"];
+            $nombreCliente = $parametros["nombreCliente"];
+            $pedidoAModificar = Pedido::obtenerPedidoPorID($idPedido);
+            if($pedidoAModificar->estado == "pendiente"){
+                // $estado = $parametros["estado"];
+                if(Pedido::ModificarPedido($idPedido,$idProducto,$nombreCliente)){
+                    $pedidoModificado = Pedido::obtenerPedidoPorID($idPedido);
+                    $payload = json_encode(array("Pedido_modificado" => $pedidoModificado));
+                }else{
+                    $payload = json_encode(array("mensaje" => "Pedido no modificado"));
+                }
+            }else{
+                $payload = json_encode(array("error" => "Pedido no modificado, tiene que tener estado pendiente y el pedido tiene estado " . $pedidoAModificar->estado));
+            }
+        }else{
+            $payload = json_encode(array("error" => "faltan parametros"));   
+        }
+
+        $response->getBody()->write($payload);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    public function CancelarPedidoController($request, $response, $args)
+    {
+        $parametros = $request->getParsedBody();
+        if(isset($parametros['idPedido']) && !empty($parametros['idPedido'])){
+            $idPedido = $parametros["idPedido"];
+            $pedido = Pedido::obtenerPedidoPorID($idPedido);
+            if($pedido->estado != 'cancelado'){
+                if($pedido->estado == "pendiente"){
+                    Pedido::actualizarEstado($idPedido,"cancelado");
+                    Pedido::BorrarCodigoANPorId($idPedido);
+                    $retorno = json_encode(array("mensaje" => "pedido cancelado"));
+                    // if(Pedido::actualizarEstado($idPedido,"cancelado")){
+                    //     // $pedido->ActualizarImagenPedidoPedido("sin imagen");
+                    //     $retorno = json_encode(array("mensaje" => "pedido cancelado"));
+                    // }else{
+                    //     $retorno = json_encode(array("mensaje" => "pedido NO cancelado"));
+                    // }
+                }else{
+                    $retorno = json_encode(array("mensaje" => "pedido NO cancelado, tiene que tener el estado 'pendiente' para cancelarse y el estado es " . $pedido->estado));
+                }
+            }else{
+                $retorno = json_encode(array("mensaje" => "la pedido ya esta cancelado"));
+            }
+        }else{
+            $retorno = json_encode(array("error" => "faltan parametros"));   
+        }
+        // $dataToken = $request->getAttribute('datosToken');
+        // var_dump($dataToken->puesto);
+
+        $response->getBody()->write($retorno);
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
     public function TraerPedidosPendientesPorSectorController($request, $response, $args)
     {       
         $header = $request->getHeaderLine('Authorization');
@@ -80,28 +140,31 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $data = AutentificadorJWT::ObtenerData($token);
         $sector = $data->sector;
         
-        if($sector == "mozos"){
-            //caso mozo
-            $payload = json_encode(array("PedidosPendientes" => "El mozo no puede ver los pedidos pendientes"));
-        }elseif($sector == "socios"){
-            //caso socio
-            $listaPedidos = Pedido::obtenerTodosPedidosPendientes();
-            
-            if($listaPedidos && !empty($listaPedidos)){
-                $payload = json_encode(array("Todos_Pedidos_Pendientes" => $listaPedidos));
+        if($data->estado == "activo"){
+            if($sector == "mozos"){
+                //caso mozo
+                $payload = json_encode(array("PedidosPendientes" => "El mozo no puede ver los pedidos pendientes"));
+            }elseif($sector == "socios"){
+                //caso socio
+                $listaPedidos = Pedido::obtenerTodosPedidosPendientes();
+                
+                if($listaPedidos && !empty($listaPedidos)){
+                    $payload = json_encode(array("Todos_Pedidos_Pendientes" => $listaPedidos));
+                }else{
+                    $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
+                }
             }else{
-                $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
+                $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($sector);
+
+                if($listaPedidos && !empty($listaPedidos)){
+                    $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
+                }else{
+                    $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
+                }
             }
         }else{
-            $listaPedidos = Pedido::obtenerPedidosPendientesPorSector($sector);
-
-            if($listaPedidos && !empty($listaPedidos)){
-                $payload = json_encode(array("PedidosPendientes" => $listaPedidos));
-            }else{
-                $payload = json_encode(array("Pedidos" =>"No hay pedidos pendientes"));
-            }
+            $payload = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $data->estado));    
         }
-    
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -117,33 +180,37 @@ class PedidoController extends Pedido /*implements IApiUsable*/
             $data = AutentificadorJWT::ObtenerData($token);
             $sectorLogin = $data->sector;
     
-            if($sectorLogin == "mozos"){
-                //caso mozo
-                $retorno = json_encode(array("PedidosEnPreparacion" => "El mozo no puede tomar un pedido pendiente"));
-            }else{
-                $idPedido = $parametros["idPedido"];
-                $pedidoAPreparar = Pedido::obtenerPedidoPorID($idPedido);
-                $idProducto = $pedidoAPreparar->idProducto;
-                $productoAPreparar = Producto::ObtenerProductoPorID($idProducto);
+            if($data->estado == "activo"){
+                if($sectorLogin == "mozos"){
+                    //caso mozo
+                    $retorno = json_encode(array("PedidosEnPreparacion" => "El mozo no puede tomar un pedido pendiente"));
+                }else{
+                    $idPedido = $parametros["idPedido"];
+                    $pedidoAPreparar = Pedido::obtenerPedidoPorID($idPedido);
+                    $idProducto = $pedidoAPreparar->idProducto;
+                    $productoAPreparar = Producto::ObtenerProductoPorID($idProducto);
 
-                if($pedidoAPreparar){
-                    if($productoAPreparar->sector === $sectorLogin || $sectorLogin === "socios"){
-                        if($pedidoAPreparar->estado == "pendiente"){
-                            $tiempoEstimado = $parametros["tiempoEstimado"];
-                            $tiempoEstimado = gmdate("H:i:s", $tiempoEstimado * 60); // Convertir minutos a formato H:i:s
-                            Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
-                            Pedido::CambiarEstadoPedidoPorId($pedidoAPreparar->idPedido);
-                            Mesa::actualizarEstado($pedidoAPreparar->idMesa,"con cliente esperando pedido");
-                            $retorno = json_encode(array("mensaje" => "pedido tomado con exito"));   
+                    if($pedidoAPreparar){
+                        if($productoAPreparar->sector === $sectorLogin || $sectorLogin === "socios"){
+                            if($pedidoAPreparar->estado == "pendiente"){
+                                $tiempoEstimado = $parametros["tiempoEstimado"];
+                                $tiempoEstimado = gmdate("H:i:s", $tiempoEstimado * 60); // Convertir minutos a formato H:i:s
+                                Pedido::actualizarTiempoIniciadoEstimado($pedidoAPreparar->idPedido,$tiempoEstimado);
+                                Pedido::CambiarEstadoPedidoPorId($pedidoAPreparar->idPedido);
+                                Mesa::actualizarEstado($pedidoAPreparar->idMesa,"con cliente esperando pedido");
+                                $retorno = json_encode(array("mensaje" => "pedido tomado con exito"));   
+                            }else{
+                                $retorno = json_encode(array("mensaje" => "pedido no tomado porque tiene estado " . $pedidoAPreparar->estado));   
+                            }
                         }else{
-                            $retorno = json_encode(array("mensaje" => "pedido no tomado porque tiene estado " . $pedidoAPreparar->estado));   
+                            $retorno = json_encode(array("error" => "pedido NO tomado porque el usuario es del sector " . $data->sector . " y el pedido pertenece a " . $productoAPreparar->sector));   
                         }
                     }else{
-                        $retorno = json_encode(array("error" => "pedido NO tomado porque el usuario es del sector " . $data->sector . " y el pedido pertenece a " . $productoAPreparar->sector));   
-                    }
-                }else{
-                    $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
-                }  
+                        $retorno = json_encode(array("mensaje" => "el pedido no existe"));   
+                    }  
+                }
+            }else{
+                $retorno = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $data->estado));    
             }
         }else{
             $retorno = json_encode(array("error" => "faltan parametros"));   
@@ -161,34 +228,38 @@ class PedidoController extends Pedido /*implements IApiUsable*/
         $sector = $data->sector;
         $listaPedidos = Pedido::obtenerTodosPedidosEnPreparacion();
         // var_dump($listaPedidos);
-        if($sector == "mozos"){
-            //caso mozo
-            $payload = json_encode(array("PedidosEnPreparacion" => "El mozo no puede ver los pedidos En Preparacion"));
-        }elseif($sector == "socios"){
-            //caso socio
-            if($listaPedidos && !empty($listaPedidos)){
-                $payload = json_encode(array("Todos_Pedidos_EnPreparacion" => $listaPedidos));
+
+        if($data->estado == "activo"){
+            if($sector == "mozos"){
+                //caso mozo
+                $payload = json_encode(array("PedidosEnPreparacion" => "El mozo no puede ver los pedidos En Preparacion"));
+            }elseif($sector == "socios"){
+                //caso socio
+                if($listaPedidos && !empty($listaPedidos)){
+                    $payload = json_encode(array("Todos_Pedidos_EnPreparacion" => $listaPedidos));
+                }else{
+                    $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
+                }
             }else{
-                $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
-            }
-        }else{
-            $pedidosPorSector = Array();
-            foreach($listaPedidos as $pedido)
-            {
-                $sectorProducto = $pedido['sector'];
-                if($sectorProducto === $sector){
-                    $pedidosPorSector[] = $pedido;
+                $pedidosPorSector = Array();
+                foreach($listaPedidos as $pedido)
+                {
+                    $sectorProducto = $pedido['sector'];
+                    if($sectorProducto === $sector){
+                        $pedidosPorSector[] = $pedido;
+                    }
+                }
+                // var_dump($pedidosPorSector);
+
+                if($pedidosPorSector && !empty($pedidosPorSector)){
+                    $payload = json_encode(array("PedidosEnPreparacion" => $pedidosPorSector));
+                }else{
+                    $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
                 }
             }
-            // var_dump($pedidosPorSector);
-
-            if($pedidosPorSector && !empty($pedidosPorSector)){
-                $payload = json_encode(array("PedidosEnPreparacion" => $pedidosPorSector));
-            }else{
-                $payload = json_encode(array("Pedidos" =>"No hay pedidos En Preparacion"));
-            }
+        }else{
+            $payload = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $data->estado));    
         }
-    
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
@@ -206,33 +277,36 @@ class PedidoController extends Pedido /*implements IApiUsable*/
             $token = trim(explode("Bearer", $header)[1]);
             $data = AutentificadorJWT::ObtenerData($token);
             $sectorLogin = $data->sector;
-    
-            if($sectorLogin == "mozos"){
-                //caso mozo
-                $retorno = json_encode(array("PedidosEnPreparacion" => "El mozo no puede finalizar un pedido en preparacion"));
-            }else{
-                $idPedido = $parametros["idPedido"];
-                $pedidoAFinalizar = Pedido::obtenerPedidoPorID($idPedido);
-                $idProducto = $pedidoAFinalizar->idProducto;
-                $productoAFinalizar = Producto::ObtenerProductoPorID($idProducto);
+            
+            if($data->estado == "activo"){
+                if($sectorLogin == "mozos"){
+                    //caso mozo
+                    $retorno = json_encode(array("PedidosEnPreparacion" => "El mozo no puede finalizar un pedido en preparacion"));
+                }else{
+                    $idPedido = $parametros["idPedido"];
+                    $pedidoAFinalizar = Pedido::obtenerPedidoPorID($idPedido);
+                    $idProducto = $pedidoAFinalizar->idProducto;
+                    $productoAFinalizar = Producto::ObtenerProductoPorID($idProducto);
 
-                if($pedidoAFinalizar){
-                    if($productoAFinalizar->sector === $sectorLogin || $sectorLogin === "socios"){
-                        if($pedidoAFinalizar->estado == "en preparacion"){
-                            Pedido::actualizarTiempoFinalizacion($pedidoAFinalizar->idPedido,$tiempoActual);                //puede ser de clase
-                            Pedido::CambiarEstadoPedidoPorId($pedidoAFinalizar->idPedido);
-                            // Mesa::actualizarEstado($pedidoAFinalizar->idMesa,"con cliente esperando pedido");
-                            $retorno = json_encode(array("mensaje" => "pedido finalizado con exito"));   
+                    if($pedidoAFinalizar){
+                        if($productoAFinalizar->sector === $sectorLogin || $sectorLogin === "socios"){
+                            if($pedidoAFinalizar->estado == "en preparacion"){
+                                Pedido::actualizarTiempoFinalizacion($pedidoAFinalizar->idPedido,$tiempoActual);                //puede ser de clase
+                                Pedido::CambiarEstadoPedidoPorId($pedidoAFinalizar->idPedido);
+                                // Mesa::actualizarEstado($pedidoAFinalizar->idMesa,"con cliente esperando pedido");
+                                $retorno = json_encode(array("mensaje" => "pedido finalizado con exito"));   
+                            }else{
+                                $retorno = json_encode(array("mensaje" => "pedido no finalizado, tiene que tener el estado 'en preparacion', pero tiene estado " . $pedidoAFinalizar->estado));   
+                            }
                         }else{
-                            $retorno = json_encode(array("mensaje" => "pedido no finalizado, tiene que tener el estado 'en preparacion', pero tiene estado " . $pedidoAFinalizar->estado));   
+                            $retorno = json_encode(array("error" => "pedido NO tomado porque el usuario es " . $data->sector . " y el pedido pertenece a " . $productoAFinalizar->sector));   
                         }
                     }else{
-                        $retorno = json_encode(array("error" => "pedido NO tomado porque el usuario es " . $data->sector . " y el pedido pertenece a " . $productoAFinalizar->sector));   
-                    }
-                }else{
-                    $retorno = json_encode(array("error" => "el pedido no existe"));   
-                }  
- 
+                        $retorno = json_encode(array("error" => "el pedido no existe"));   
+                    }  
+                }
+            }else{
+                $retorno = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $data->estado));    
             }
         }else{
             $retorno = json_encode(array("error" => "faltan parametros"));   

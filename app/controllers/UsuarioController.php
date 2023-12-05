@@ -1,10 +1,9 @@
 <?php
 require_once './models/Usuario.php';
 require_once './models/Mesa.php';
-// require_once './interfaces/IApiUsable.php';
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-class UsuarioController extends Usuario /*implements IApiUsable*/
+class UsuarioController extends Usuario 
 {
     
     public function CargarUsuario($request, $response, $args)
@@ -129,18 +128,22 @@ class UsuarioController extends Usuario /*implements IApiUsable*/
     
             $continuar = true;
             $mesa = Mesa::obtenerMesaPorID($idMesa);
-            if($estado === "con cliente pagando" && $mesa->estado !== "con cliente comiendo")
-            {    
-                $continuar = false;
-                $retorno = json_encode(array("mensaje" => "estado no cambiado, La mesa no cuenta con los clientes comiendo"));
-            }
-    
-            if($continuar){
-                if(Usuario::CambiarEstadoMesa($idMesa, $estado)){
-                    $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
-                }else{
-                    $retorno = json_encode(array("mensaje" => "estado no cambiado"));
+            if($mesa){
+                if($estado === "con cliente pagando" && $mesa->estado !== "con cliente comiendo")
+                {    
+                    $continuar = false;
+                    $retorno = json_encode(array("mensaje" => "estado no cambiado, La mesa no cuenta con los clientes comiendo"));
                 }
+        
+                if($continuar){
+                    if(Usuario::CambiarEstadoMesa($idMesa, $estado)){
+                        $retorno = json_encode(array("mensaje" => "estado de la mesa cambiado: " . $estado));
+                    }else{
+                        $retorno = json_encode(array("mensaje" => "estado no cambiado"));
+                    }
+                }
+            }else{
+                $retorno = json_encode(array("error" => "no existe la mesa"));   
             }
         }else{
             $retorno = json_encode(array("error" => "faltan parametros"));   

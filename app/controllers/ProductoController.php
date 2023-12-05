@@ -1,9 +1,8 @@
 <?php
 require_once './models/Producto.php';
 require_once './models/Usuario.php';
-// require_once './interfaces/IApiUsable.php';
 
-class ProductoController extends Producto /*implements IApiUsable*/
+class ProductoController extends Producto 
 {
     public function CargarProducto($request, $response, $args)
     {
@@ -64,7 +63,8 @@ class ProductoController extends Producto /*implements IApiUsable*/
             $precio = $parametros["precio"];
             $sector = $parametros["sector"];
             if(Producto::ModificarProducto($id,$descripcion,$precio,$sector)){
-                $retorno = json_encode(array("mensaje" => "Producto modificado: "));
+                $productoModificado = Producto::ObtenerProductoPorID($id);
+                $retorno = json_encode(array("Producto_modificado" => $productoModificado));
             }else{
                 $retorno = json_encode(array("mensaje" => "Producto no modificado"));
             }

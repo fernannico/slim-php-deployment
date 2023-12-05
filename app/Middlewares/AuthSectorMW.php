@@ -17,16 +17,21 @@ class AuthSectorMW
         $token = trim(explode("Bearer", $header)[1]);
 
         $data = AutentificadorJWT::ObtenerData($token);
+        $response = new Response();
 
-        if($data->sector === $this->sector || $data->sector === 'socios'){
-            $request = $request->withAttribute('datosToken', $data);//retorna en el request la data del token
-            $response = $handler->handle($request);
+        if($data->estado == "activo"){
+            if($data->sector === $this->sector || $data->sector === 'socios'){
+                $request = $request->withAttribute('datosToken', $data);//retorna en el request la data del token
+                $response = $handler->handle($request);
+            }else{
+                $payload = json_encode(array('ERROR:' => $data->puesto. ' no autorizado, tiene que ser del sector ' . $this->sector));
+                $response->getBody()->write($payload);
+            }
         }else{
-            $response = new Response();
-            $payload = json_encode(array('ERROR:' => $data->puesto. ' no autorizado, tiene que ser del sector ' . $this->sector));
+            $payload = json_encode(array('ERROR:' => 'el usuario logeado esta con estado ' . $data->estado));    
             $response->getBody()->write($payload);
         }
-            
+        
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

@@ -14,7 +14,7 @@ class LoginController{
             $usuario = Usuario::ObtenerUsuarioPorMailPwd($mail, $contrasenia);
 
             if($usuario){ 
-                $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector, 'puesto'=> $usuario->puesto);
+                $datos = array('id' => $usuario->id, 'sector'=> $usuario->sector, 'puesto'=> $usuario->puesto, 'estado'=> $usuario->estado);
                 $token = AutentificadorJWT::CrearToken($datos);
                 $payload = json_encode(array('jwt' => $token));
             } else {

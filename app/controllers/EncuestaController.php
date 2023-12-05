@@ -1,6 +1,7 @@
 <?php
 require_once './models/Encuesta.php';
 require_once './models/Pedido.php';
+require_once './models/Mesa.php';
 class EncuestaController{
     public function CargarEncuesta($request, $response, $args){
         $parametros = $request->getParsedBody();
@@ -21,26 +22,34 @@ class EncuestaController{
             // var_dump($pedidos);
             $pedido = $pedidos[0];
             
-            if($idMesa == $pedido->idMesa){
-                $encuesta->idMesa = $pedido->idMesa;
-                $encuesta->codigoAN = $codigoAN;
-                $encuesta->nombreCliente = $pedido->nombreCliente;
-                $encuesta->puntuacionMesa = $puntuacionMesa;
-                $encuesta->puntuacionRestaurante = $puntuacionRestaurante;
-                $encuesta->puntuacionMozo = $puntuacionMozo;
-                $encuesta->puntuacionCocinero = $puntuacionCocinero;
-                $encuesta->promedioPuntaje = $promedioPuntaje;
-                $encuesta->comentario = $parametros['comentario'];
-                Encuesta::CrearEncuesta($encuesta);
-                $payload = json_encode(array("mensaje" => "Encuesta creada con exito"));
+            $mesa = Mesa::obtenerMesaPorID($idMesa);
+            if($mesa){
+                if($idMesa == $pedido->idMesa){
+                    $encuesta->idMesa = $pedido->idMesa;
+                    $encuesta->codigoAN = $codigoAN;
+                    $encuesta->nombreCliente = $pedido->nombreCliente;
+                    $encuesta->puntuacionMesa = $puntuacionMesa;
+                    $encuesta->puntuacionRestaurante = $puntuacionRestaurante;
+                    $encuesta->puntuacionMozo = $puntuacionMozo;
+                    $encuesta->puntuacionCocinero = $puntuacionCocinero;
+                    $encuesta->promedioPuntaje = $promedioPuntaje;
+                    $encuesta->comentario = $parametros['comentario'];
+                    Encuesta::CrearEncuesta($encuesta);
+                    $payload = json_encode(array("mensaje" => "Encuesta creada con exito"));
+                    $response->getBody()->write($payload);
+                }else{
+                    $payload = json_encode(array("Error" => "el codigo del pedido no coincide con la mesa correspondiente"));
+                    $response->getBody()->write($payload);
+                }
             }else{
-                $payload = json_encode(array("Error" => "el codigo del pedido no coincide con la mesa correspondiente"));
+                $payload = json_encode(array("Error" => "Mesa no encontrada"));
+                $response->getBody()->write($payload);
             }
         }else{
             $payload = json_encode(array("Error" => "Faltan parametros"));
+            $response->getBody()->write($payload);
         }
 
-        $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
     }
     

@@ -19,12 +19,16 @@ class AuthMesaMW
         }
 
         // var_dump($idMesa);
-
-        if(Mesa::obtenerMesaPorID($idMesa) !== false){
-            return $handler->handle($request);
+        $response = new Response();
+        $mesa = Mesa::obtenerMesaPorID($idMesa);
+        if($mesa){
+            if($mesa->estado !== "cerrada"){
+                return $handler->handle($request);
+            }else{
+                $response->getBody()->write(json_encode(["error" => "La mesa esta cerrada"]));
+            }
         }else{
-            $response = new Response();
-            $response->getBody()->write(json_encode(["mensaje" => "Mesa no encontrada"]));
+            $response->getBody()->write(json_encode(["error" => "Mesa no encontrada"]));
         }
 
         return $response->withHeader('Content-Type', 'application/json');

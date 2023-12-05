@@ -76,7 +76,7 @@ class Usuario
 
     public static function ObtenerUsuarioPorMailPwd($mail, $password) {
         $objetoAccesoDato = AccesoDatos::obtenerInstancia(); 
-        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto from usuarios where mail = :mail AND contrasena = :contrasena");
+        $consulta = $objetoAccesoDato->prepararConsulta("SELECT id, nombre, contrasena, sector, puesto, estado from usuarios where mail = :mail AND contrasena = :contrasena");
         $consulta->bindParam(":mail", $mail);
         $consulta->bindParam(":contrasena", $password);
         $consulta->execute();
