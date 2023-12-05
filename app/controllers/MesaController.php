@@ -8,17 +8,21 @@ class MesaController extends Mesa /*implements IApiUsable*/
     public function CargarMesa($request, $response, $args)
     {
         $parametros = $request->getParsedBody();
-
-        $estado = $parametros['estado'];
-
-        $códigoIdentificación = rand(10000,99999);
-        // Creamos el usuario
-        $usr = new Mesa();
-        $usr->id = $códigoIdentificación;
-        $usr->estado = $estado;
-        $usr->crearMesa();
-
-        $payload = json_encode(array("mensaje" => "Mesa creada con exito"));
+        if(isset($parametros['estado']) && !empty($parametros['estado'])){
+            $estado = $parametros['estado'];
+    
+            $codigoIdentificacion = rand(10000,99999);
+            // Creamos el usuario
+            $usr = new Mesa();
+            $usr->id = $codigoIdentificacion;
+            $usr->estado = $estado;
+            $usr->crearMesa();
+    
+            $payload = json_encode(array("mensaje" => "Mesa creada con exito"));
+        }else{
+            $payload = json_encode(array("error" => "faltan parametros"));   
+            $response->getBody()->write($payload);
+        }
 
         $response->getBody()->write($payload);
         return $response->withHeader('Content-Type', 'application/json');
@@ -50,7 +54,7 @@ class MesaController extends Mesa /*implements IApiUsable*/
         $mesas = Mesa::ObtenerMesasMasUsadas();
 
         if (!$mesas) {
-            $payload = json_encode(array("mensaje" => "No se encontró ninguna mesa"));
+            $payload = json_encode(array("mensaje" => "No se encontro ninguna mesa"));
         } else {
             $payload = json_encode(['Mesas_Mas_Usadas' => $mesas]);
         }

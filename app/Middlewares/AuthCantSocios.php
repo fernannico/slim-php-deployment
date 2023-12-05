@@ -19,7 +19,7 @@ class AuthCantSocios
                 if ($cantidadUsuariosSocios < 3) {
                     $response = $handler->handle($request);
                 } else {
-                    throw new Exception('Cantidad máxima de usuarios con sector "socios" alcanzada');
+                    throw new Exception('Cantidad maxima de usuarios con sector "socios" alcanzada');
                 }
             } else {
                 $response = $handler->handle($request);

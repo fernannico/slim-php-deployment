@@ -37,6 +37,6 @@ class AccesoDatos
 
     public function __clone()
     {
-        trigger_error('ERROR: La clonación de este objeto no está permitida', E_USER_ERROR);
+        trigger_error('ERROR: La clonacion de este objeto no está permitida', E_USER_ERROR);
     }
 }

@@ -1,26 +1,23 @@
 <?php
-
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
+require_once './models/Encuesta.php';
 
-class AuthUsuarioEstadoMW
+class AuthEncuestaHecha
 {
     public function __invoke(Request $request, RequestHandler $handler): Response
-    {   
+    {        
         $parametros = $request->getParsedBody();
         $response = new Response();
-        if(isset($parametros['estado']) && !empty($parametros['estado'])){
-            $estado = $parametros['estado'];
+        if(isset($parametros['codigoAN']) && !empty($parametros['codigoAN'])){
+            $codigoAN = $parametros['codigoAN'];
     
-            $estadosPermitidos = ["suspendido", "despedido", "activo"];
-    
-            //validamos estado
-            if (in_array($estado, $estadosPermitidos)) {
-                $response = $handler->handle($request);
+            $encuesta = Encuesta::ObtenerEncuestaPorCodigoAN($codigoAN);
+            if($encuesta){
+                $response->getBody()->write(json_encode(["error" => "Ya se realizó la encuesta de ese pedido"]));
             }else{
-                $payload = json_encode(array('mensaje' => 'estado no identificado. Estados permitidos: suspendido | despedido | activo'));
-                $response->getBody()->write($payload);
+                $response = $handler->handle($request);
             }
         }else{
             $payload = json_encode(array("error" => "faltan parametros"));   
@@ -28,5 +25,5 @@ class AuthUsuarioEstadoMW
         }
 
         return $response->withHeader('Content-Type', 'application/json');
-    }    
+    }
 }

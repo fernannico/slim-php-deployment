@@ -161,7 +161,7 @@ class Pedido
         if ($resultado) {
             return $resultado['estado']; // Devolver el estado
         } else {
-            return "No se encontró el pedido"; // Manejo de error si no se encuentra el pedido
+            return "No se encontro el pedido"; // Manejo de error si no se encuentra el pedido
         }
     }
 
@@ -211,7 +211,7 @@ class Pedido
     {
         $codigoAN = false;
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT codigoAN FROM pedidos WHERE idMesa = :idMesa");
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT codigoAN FROM pedidos WHERE idMesa = :idMesa AND estado != 'cobrado' AND estado != 'entregado'");
         $consulta->bindParam(":idMesa", $idMesa);
         $consulta->execute();
         

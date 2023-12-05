@@ -28,20 +28,20 @@ class Encuesta{
         $consulta->execute();
     }
 
-    public static function ObtenerTodasEncuestas()
+    // public static function ObtenerTodasEncuestas()
+    // {
+    //     $objAccesoDatos = AccesoDatos::obtenerInstancia();
+    //     $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM encuestas");
+    //     $consulta->execute();
+
+    //     return $consulta->fetchAll(PDO::FETCH_CLASS, 'Encuesta');
+    // }
+
+    public static function ObtenerEncuestaPorCodigoAN($codigoAN)
     {
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM encuestas");
-        $consulta->execute();
-
-        return $consulta->fetchAll(PDO::FETCH_CLASS, 'Encuesta');
-    }
-
-    public static function ObtenerEncuestaPorId($id)
-    {
-        $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM encuestas WHERE id = :id");
-        $consulta->bindParam(':id', $id);
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM encuestas WHERE codigoAN = :codigoAN");
+        $consulta->bindParam(':codigoAN', $codigoAN);
         $consulta->execute();
 
         return $consulta->fetchObject('Encuesta');

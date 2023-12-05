@@ -5,7 +5,7 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
 require_once './models/Usuario.php';
 
-class AuthSocioMW
+class AuthClienteMW
 {
     /*
      * Example middleware invokable class
@@ -24,13 +24,11 @@ class AuthSocioMW
             if(!empty($header)) {
                 $token = trim(explode("Bearer", $header)[1]);
                 $datos = AutentificadorJWT::ObtenerData($token);
-                if($datos->puesto === "socio"){                 
-                    //$request->datosToken = $datos;              //el request/response es un objeto, y puedo agregarle/sacarle cosas. Asi que al request del controller le va a llegar lo del body/param y ahora sumado, lo que le paso como data
-                                                                //entonces puedo hacer un MW que me retorne al controller el tiepo de puesto mediante modificar el controller con la data
-                    $request = $request->withAttribute('datosToken', $datos);//retorna en el request la data del token
+                if($datos->puesto === "cliente"){                 
+                    $request = $request->withAttribute('datosToken', $datos);
                     $response = $handler->handle($request);
                 }else{
-                    throw new Exception('no es socio');
+                    throw new Exception('no es cliente');
                 }
             }else{
                 throw new Exception('Token no valido');
@@ -38,7 +36,7 @@ class AuthSocioMW
         } catch (Exception $e) {
             //throw $th;
             $response = new Response();
-            $payload = json_encode(array('mensaje' => 'ERROR: solo socios autorizados'));
+            $payload = json_encode(array('mensaje' => 'ERROR: solo clientes autorizados'));
             $response->getBody()->write($payload);
         }
 
